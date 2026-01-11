@@ -17,7 +17,7 @@ This guide explains the strategic importance of the Makefile within a profession
 
 ## What a Makefile actually is
 
-[cite_start]A Makefile is **not** a Python file; it is a task runner and command orchestrator that belongs to your project as a whole, rather than any specific language[cite: 9, 11]. It allows you to wrap complex, multi-step sequences into simple, memorable commands.
+A Makefile is **not** a Python file; it is a task runner and command orchestrator that belongs to your project as a whole, rather than any specific language. It allows you to wrap complex, multi-step sequences into simple, memorable commands.
 
 Instead of requiring a contributor to remember:
 ```bash
