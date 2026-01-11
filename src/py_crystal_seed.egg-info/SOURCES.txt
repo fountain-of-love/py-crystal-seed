@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+src/py_crystal_seed/__init__.py
+src/py_crystal_seed/main.py
+src/py_crystal_seed.egg-info/PKG-INFO
+src/py_crystal_seed.egg-info/SOURCES.txt
+src/py_crystal_seed.egg-info/dependency_links.txt
+src/py_crystal_seed.egg-info/requires.txt
+src/py_crystal_seed.egg-info/top_level.txt
+tests/test_main.py
