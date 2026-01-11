@@ -216,12 +216,16 @@ See the full development guide in **[dev-ops/README.md](dev-ops/README.md)**.
 
 ---
 
-If you’d like, next step I can also provide:
+## Future extensions
 
-* A cookiecutter version of this template
-* A GitHub “Use this template” repository setup
-* A CLI entrypoint (`py-crystal-seed` runnable directly)
-* A badge-ready README header
-* A versioned release structure
+This template intentionally provides a strong foundation without imposing heavy tooling.
+Depending on your project’s maturity, you may consider extending it with:
 
-Just tell me how far you want to take this.
+- static analysis (ruff, mypy/pyright)
+- richer typing practices
+- automated versioning and release workflows
+- extended CI (linting, type checks, coverage)
+- documentation tooling (MkDocs, Sphinx)
+- packaging and publishing practices
+
+The structure of this template is designed to support these additions without requiring restructuring.

@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "{{cookiecutter.repo_name}}"
+version = "0.1.0"
+description = "{{cookiecutter.project_description}}"
+requires-python = ">={{cookiecutter.python_min_version}}"
+authors = [{ name = "{{cookiecutter.author_name}}" }]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pre-commit",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

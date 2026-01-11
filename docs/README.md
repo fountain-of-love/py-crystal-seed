@@ -48,6 +48,11 @@ Documentation to make this repo reusable via *Use this template* on Github.
 
 Link: [Template repository](template-repository.md)
 
+### Future extentions
+Roadmap with strategic next steps for contributors to enhance code quality, distribution, and architectural integrity.
+
+Link: [Future extentions](future-extentions.md)
+
 
 
 ---

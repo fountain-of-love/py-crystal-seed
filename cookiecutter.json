@@ -1,0 +1,8 @@
+{
+  "repo_name": "py-structural-anchor",
+  "package_name": "py_structural_anchor",
+  "project_description": "A professional-grade Python project template generated from py-crystal-seed",
+  "author_name": "Your Name",
+  "author_email": "you@example.com",
+  "python_min_version": ["3.10", "3.11", "3.12"]
+}
