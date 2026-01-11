@@ -71,6 +71,29 @@ Tests can be run with:
 pytest
 ```
 
+### Quick setup (recommended)
+
+This project includes a small bootstrap script that sets up a complete, correct development environment automatically.
+
+From the project root:
+
+```bash
+./scripts/bootstrap.sh
+source venv/bin/activate
+pytest
+```
+
+This script:
+
+* creates the virtual environment
+* installs build tooling (pip, setuptools, wheel)
+* installs the project in editable mode
+* installs development dependencies 
+
+It ensures that everyone starts from the same, working setup.
+
+For details, see: **[scripts/README.md](scripts/README.md)**.
+
 ---
 
 ## Renaming the project for your own use
