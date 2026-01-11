@@ -151,8 +151,9 @@ This template takes the opposite approach:
 | packaging later                   | packaging from day one                |
 | tooling grows organically         | tooling is intentional from start     |
 
-The result is:
+### Why this adds value
 
+This structure leads to:
 * Fewer “works on my machine” issues
 * Easier onboarding for new contributors
 * Better compatibility with CI/CD systems
@@ -188,7 +189,7 @@ For full instructions on:
 
 See:
 
-➡ **dev-ops/README.md**
+See the full development guide in **[dev-ops/README.md](dev-ops/README.md)**.
 
 ---
 
