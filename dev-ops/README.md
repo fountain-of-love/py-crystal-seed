@@ -189,7 +189,7 @@ dev = [
 Then install with:
 
 ```bash
-pip install -e .[dev]
+pip install -e '.[dev]'
 ```
 
 ---
@@ -250,7 +250,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - run: pip install -e .[dev]
+      - run: pip install -e '.[dev]'
       - run: pytest
 ```
 
@@ -258,7 +258,7 @@ jobs:
 
 ## Common Issues
 
-### Imports fail (`ModuleNotFoundError: typedjsonl`)
+### Imports fail (`ModuleNotFoundError: py_crystal_seed`)
 
 Solution:
 
@@ -311,7 +311,7 @@ The goal is that anyone cloning this project can run:
 
 ```bash
 python -m venv .venv
-pip install -e .[dev]
+pip install -e '.[dev]'
 pytest
 ```
 
