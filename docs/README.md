@@ -36,13 +36,18 @@ Link: [Developer Operations](../dev-ops/README.md)
 ### Makefile
 A human interaction frontdoor, wrapping complex, multi-step sequences into simple, memorable commands. A Makefile is **not** a Python file; it is a task runner and command orchestrator that belongs to your project as a whole, rather than any specific language.
 
-
 Link: [Makefile](make.md)
 
 ### CI pipeline
 Automatically run the test suite on every push and pull request, across multiple Python versions.
 
-
 Link: [CI pipeline](ci-pipeline.md)
+
+### Template repository
+Documentation to make this repo reusable via *Use this template* on Github.
+
+Link: [Template repository](template-repository.md)
+
+
 
 ---
