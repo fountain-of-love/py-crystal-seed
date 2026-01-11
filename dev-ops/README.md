@@ -113,6 +113,55 @@ pytest
 
 ---
 
+## Quality gates with pre-commit
+
+This project uses `pre-commit` to ensure that commits do not introduce failing code.
+
+The pre-commit hook runs the project’s canonical test command:
+
+```bash
+./scripts/test.sh
+```
+
+### Setup
+
+Install development dependencies:
+
+```bash
+pip install -e '.[dev]'
+```
+
+Install the git hook:
+
+```bash
+pre-commit install
+```
+
+### What happens on commit?
+
+On every git commit:
+- the test suite is executed 
+- if tests fail, the commit is blocked 
+- if tests pass, the commit proceeds normally
+
+This ensures broken code cannot be committed accidentally.
+
+### Run manually
+
+You can run the same checks manually at any time:
+
+```bash
+./scripts/test.sh
+```
+
+Notice:
+- dev-ops doc talks about **process and intent**
+- scripts doc talks about **mechanics**
+- bootstrap remains untouched
+- responsibilities are cleanly separated
+
+---
+
 ## Why editable install?
 
 We use:

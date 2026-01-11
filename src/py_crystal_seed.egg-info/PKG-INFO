@@ -5,3 +5,4 @@ Summary: A professional Python project template
 Requires-Python: >=3.10
 Provides-Extra: dev
 Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pre-commit; extra == "dev"

@@ -47,6 +47,24 @@ pytest
 
 ---
 
+## `test.sh`
+
+Runs the project test suite using the project’s virtual environment.
+
+This script is used by:
+- developers (manual testing)
+- pre-commit hooks (commit-time validation)
+- future CI pipelines
+
+It enforces a single, canonical way of running tests.
+
+### Usage
+
+```bash
+./scripts/test.sh
+
+---
+
 ## Philosophy
 
 These scripts are not meant to hide complexity.
