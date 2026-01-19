@@ -1,12 +1,14 @@
 VENV := venv
 PY := $(VENV)/bin/python
+CC := $(VENV)/bin/cookiecutter
 
-.PHONY: setup check test hooks hooks-refresh clean
+.PHONY: help setup check test hooks hooks-refresh clean new inject apply-safe
 
 # --- Core actions ---
 
 help: ## Print this help menu
-	@grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "%-12s %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "%-12s %s\n", $$1, $$2}'
 
 setup: ## Create/refresh environment and install dev tooling
 	@chmod +x scripts/bootstrap.sh || true
@@ -20,6 +22,29 @@ check: ## Run tests + pre-commit checks (with hook refresh to avoid stale caches
 	@$(MAKE) hooks-refresh
 	@./scripts/test.sh
 	@$(PY) -m pre_commit run --all-files
+
+# --- Cookiecutter actions ---
+
+apply-safe: ## Generate into TARGET folder without overwriting (safe mode)
+	@if [ -z "$(TARGET)" ]; then \
+		echo "Usage: make apply-safe TARGET=../captain-do"; \
+		exit 1; \
+	fi
+	@$(CC) . --output-dir "$(TARGET)" --overwrite-if-exists=false
+
+new: ## Greenfield: generate a new project folder inside OUT
+	@if [ -z "$(OUT)" ]; then \
+		echo "Usage: make new OUT=/path/to/parent/dir"; \
+		exit 1; \
+	fi
+	@$(CC) . --output-dir "$(OUT)"
+
+inject: ## Existing repo: inject into TARGET (explicit; requires CC_INJECT hook support)
+	@if [ -z "$(TARGET)" ]; then \
+		echo "Usage: make inject TARGET=/path/to/existing/repo"; \
+		exit 1; \
+	fi
+	@CC_INJECT=1 $(CC) . --output-dir "$(TARGET)"
 
 # --- Helpers ---
 
@@ -35,4 +60,4 @@ hooks-refresh: ## Clean and reinstall hooks (pre-commit caches hooks)
 	@$(PY) -m pre_commit install
 
 clean: ## Remove venv and caches
-	rm -rf $(VENV) .pytest_cache .mypy_cache __pycache__
+	rm -rf $(VENV) .pytest_cache .mypy_cache __pycache__/
