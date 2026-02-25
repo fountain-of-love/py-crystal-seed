@@ -19,11 +19,11 @@ As this repository evolves, we transition from establishing a "Crystal Seed" str
 ---
 
 ## 1. Static Analysis and formatting
-To ensure consistency across the codebase, we aim to integrate automated quality tools that catch errors before runtime.
+To ensure consistency across the codebase, the template now includes automated quality tools that catch errors before runtime.
 
-**Proposed Tools:**
-* **Ruff:** A high-performance linter and formatter that replaces Flake8 and Black.
-* **Mypy or Pyright:** For rigorous static type checking.
+**Current Baseline:**
+* **Ruff:** Linting and formatting checks wired into scripts, pre-commit, Makefile, and CI.
+* **Pyright:** Static type checking wired into scripts, pre-commit, Makefile, and CI.
 
 **Benefits:**
 * Enforces a unified coding style across all contributors.

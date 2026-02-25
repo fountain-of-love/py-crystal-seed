@@ -15,7 +15,7 @@ echo "Installing project (editable)..."
 ./$VENV/bin/python -m pip install -e .
 
 echo "Installing dev dependencies..."
-./$VENV/bin/python -m pip install pytest
+./$VENV/bin/python -m pip install -e '.[dev]'
 
 echo ""
 echo "Bootstrap complete."

@@ -77,7 +77,7 @@ This document outlines the phased approach for maturing the repository from a ba
 
 **Changes:**
 
-* `.pre-commit-config.yaml`: Define hooks for Ruff (lint/format) and Pyright/Mypy.
+* `.pre-commit-config.yaml`: Define hooks for Ruff (lint/format) and Pyright.
 * `dev-ops/README.md`: Add instructions for running `pre-commit install`.
 
 **Result:** A local quality gate prevents "messy" commits from reaching the remote.

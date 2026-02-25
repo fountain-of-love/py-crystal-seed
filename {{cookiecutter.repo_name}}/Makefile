@@ -1,7 +1,7 @@
 VENV := venv
 PY := $(VENV)/bin/python
 
-.PHONY: setup check test hooks hooks-refresh clean help
+.PHONY: setup check smoke test lint format typecheck hooks hooks-refresh clean help
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?##' Makefile | awk 'BEGIN {FS = ":.*?## "}; {printf "%-15s %s\n", $$1, $$2}'
@@ -9,17 +9,33 @@ help: ## Show available commands
 setup: ## Create environment, install dev deps, install hooks
 	@chmod +x scripts/bootstrap.sh || true
 	@chmod +x scripts/test.sh || true
+	@chmod +x scripts/lint.sh || true
+	@chmod +x scripts/format.sh || true
+	@chmod +x scripts/typecheck.sh || true
+	@chmod +x tools/smoke_matrix.sh || true
 	@./scripts/bootstrap.sh
 	@$(PY) -m pip install -e '.[dev]'
 	@$(PY) -m pre_commit install
 
-check: ## Run tests and pre-commit hooks
+check: ## Run smoke matrix + pre-commit hooks
 	@$(MAKE) hooks-refresh
-	@./scripts/test.sh
+	@$(MAKE) smoke
 	@$(PY) -m pre_commit run --all-files
 
 test: ## Run tests only
 	@./scripts/test.sh
+
+smoke: ## Run smoke matrix (lint + typecheck + tests + import-boundary guard)
+	@./tools/smoke_matrix.sh
+
+lint: ## Run Ruff linting + formatting checks
+	@./scripts/lint.sh
+
+format: ## Apply Ruff auto-fixes and formatting
+	@./scripts/format.sh
+
+typecheck: ## Run Pyright static type checks
+	@./scripts/typecheck.sh
 
 hooks: ## Install pre-commit hooks
 	@$(PY) -m pre_commit install
@@ -30,4 +46,4 @@ hooks-refresh: ## Clean and reinstall hooks
 	@$(PY) -m pre_commit install
 
 clean: ## Remove virtualenv and caches
-	rm -rf $(VENV) .pytest_cache .mypy_cache __pycache__
+	rm -rf $(VENV) .pytest_cache .ruff_cache .pyright __pycache__

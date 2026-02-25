@@ -22,6 +22,8 @@ This repository is a **template project**. It provides:
 * A clean `src/`-based package layout
 * A working virtual environment setup
 * pytest wired correctly (CLI + IDE + CI compatible)
+* Ruff linting and formatting checks
+* Pyright static type checking
 * Editable installs (`pip install -e .`)
 * A minimal but real test
 * A minimal but real package
@@ -213,6 +215,8 @@ For full instructions on:
 See:
 
 See the full development guide in **[dev-ops/README.md](dev-ops/README.md)**.
+For Codex/maintainer workflow and template contribution rules, see
+**[DEVELOPER_README.md](DEVELOPER_README.md)**.
 
 ---
 
@@ -221,7 +225,7 @@ See the full development guide in **[dev-ops/README.md](dev-ops/README.md)**.
 This template intentionally provides a strong foundation without imposing heavy tooling.
 Depending on your project’s maturity, you may consider extending it with:
 
-- static analysis (ruff, mypy/pyright)
+- static analysis (ruff, pyright)
 - richer typing practices
 - automated versioning and release workflows
 - extended CI (linting, type checks, coverage)

@@ -3,8 +3,6 @@ from __future__ import annotations
 import os
 import shutil
 from pathlib import Path
-from typing import Iterable
-
 
 # Files that should almost always be merged manually in existing repos.
 # We refuse overwriting them by default to avoid stomping project-specific config.
@@ -78,8 +76,10 @@ def move_all_children(
     Move all children from src_dir into dst_dir with explicit overwrite rules.
 
     - Never overwrite protected toplevel paths (src/tests/main.py/etc).
-    - Never overwrite manual-merge files (pyproject.toml/etc) unless explicitly allowed via overwrite_roots.
-    - Overwrite only within allowed roots (CC_OVERWRITE), and only when enabled (CC_INJECT already checked).
+    - Never overwrite manual-merge files (pyproject.toml/etc) unless explicitly
+      allowed via overwrite_roots.
+    - Overwrite only within allowed roots (CC_OVERWRITE), and only when enabled
+      (CC_INJECT already checked).
     """
     moved: list[str] = []
     overwritten: list[str] = []
@@ -152,7 +152,7 @@ def main() -> None:
     if os.getenv("CC_INJECT") != "1":
         return
 
-    generated_dir = Path.cwd()         # .../<project_name>
+    generated_dir = Path.cwd()  # .../<project_name>
     target_dir = generated_dir.parent  # --output-dir you passed
 
     # Safety checks so it never injects into the wrong place
@@ -174,7 +174,8 @@ def main() -> None:
     protected = _csv_env_set("CC_PROTECT") or set(PROTECTED_TOPLEVEL)
 
     print(f"[cookiecutter-inject] Injecting into existing repo: {target_dir}")
-    print(f"[cookiecutter-inject] Overwrite allowlist (CC_OVERWRITE): {sorted(overwrite_roots) if overwrite_roots else '[]'}")
+    overwrite_label = sorted(overwrite_roots) if overwrite_roots else "[]"
+    print(f"[cookiecutter-inject] Overwrite allowlist (CC_OVERWRITE): {overwrite_label}")
     print(f"[cookiecutter-inject] Protected (CC_PROTECT): {sorted(protected)}")
     print(f"[cookiecutter-inject] Manual-merge (CC_MANUAL_MERGE): {sorted(manual_merge)}")
 

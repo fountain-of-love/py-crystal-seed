@@ -9,6 +9,8 @@ It includes best practices out of the box:
 - isolated virtual environment setup
 - Makefile-based workflow (`make setup`, `make check`)
 - pre-commit hooks for local quality gates
+- Ruff linting and formatting checks
+- Pyright static type checks
 - pytest-based test suite
 - CI-ready structure automatically via GitHub Actions on push/PR (see .github/workflows/tests.yml).
 
@@ -70,8 +72,12 @@ Common commands:
 
 ```bash
 make setup   # bootstrap environment
-make check   # run tests + pre-commit hooks
+make smoke   # run smoke matrix + import-boundary guardrail
+make check   # run smoke matrix + pre-commit hooks
 make test    # run tests only
+make lint    # run Ruff checks
+make format  # apply Ruff formatting/fixes
+make typecheck # run Pyright checks
 make clean   # remove virtualenv and caches
 ```
 
@@ -79,6 +85,8 @@ For more details, see:
 
 * `scripts/README.md`
 * `dev-ops/README.md`
+* `ENGINEERING_PRACTICES.md`
+* `tools/README.md`
 
 ---
 

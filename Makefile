@@ -2,7 +2,7 @@ VENV := venv
 PY := $(VENV)/bin/python
 CC := $(VENV)/bin/cookiecutter
 
-.PHONY: help setup check test hooks hooks-refresh clean new inject apply-safe
+.PHONY: help setup check smoke test lint format typecheck hooks hooks-refresh clean new inject apply-safe
 
 # --- Core actions ---
 
@@ -13,14 +13,18 @@ help: ## Print this help menu
 setup: ## Create/refresh environment and install dev tooling
 	@chmod +x scripts/bootstrap.sh || true
 	@chmod +x scripts/test.sh || true
+	@chmod +x scripts/lint.sh || true
+	@chmod +x scripts/format.sh || true
+	@chmod +x scripts/typecheck.sh || true
+	@chmod +x tools/smoke_matrix.sh || true
 	@chmod +x scripts/ensure-exec.sh 2>/dev/null || true
 	@./scripts/bootstrap.sh
 	@$(PY) -m pip install -e '.[dev]'
 	@$(PY) -m pre_commit install
 
-check: ## Run tests + pre-commit checks (with hook refresh to avoid stale caches)
+check: ## Run smoke matrix + pre-commit checks
 	@$(MAKE) hooks-refresh
-	@./scripts/test.sh
+	@$(MAKE) smoke
 	@$(PY) -m pre_commit run --all-files
 
 # --- Cookiecutter actions ---
@@ -51,6 +55,18 @@ inject: ## Existing repo: inject into TARGET (explicit; requires CC_INJECT hook 
 test: ## Run test suite via canonical script
 	@./scripts/test.sh
 
+smoke: ## Run smoke matrix (lint + typecheck + tests + import-boundary guard)
+	@./tools/smoke_matrix.sh
+
+lint: ## Run Ruff linting + formatting checks
+	@./scripts/lint.sh
+
+format: ## Apply Ruff auto-fixes and formatting
+	@./scripts/format.sh
+
+typecheck: ## Run Pyright static type checks
+	@./scripts/typecheck.sh
+
 hooks: ## Install pre-commit hooks
 	@$(PY) -m pre_commit install
 
@@ -60,4 +76,4 @@ hooks-refresh: ## Clean and reinstall hooks (pre-commit caches hooks)
 	@$(PY) -m pre_commit install
 
 clean: ## Remove venv and caches
-	rm -rf $(VENV) .pytest_cache .mypy_cache __pycache__/
+	rm -rf $(VENV) .pytest_cache .ruff_cache .pyright __pycache__/

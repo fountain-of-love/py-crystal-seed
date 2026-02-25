@@ -1,6 +1,21 @@
 repos:
   - repo: local
     hooks:
+      - id: lint
+        name: Run Ruff lint and format checks
+        entry: ./scripts/lint.sh
+        language: system
+        pass_filenames: false
+      - id: typecheck
+        name: Run static type checks
+        entry: ./scripts/typecheck.sh
+        language: system
+        pass_filenames: false
+      - id: version-import-boundary
+        name: Check version import boundaries
+        entry: ./venv/bin/python ./tools/check_version_import_boundaries.py
+        language: system
+        pass_filenames: false
       - id: test
         name: Run test suite
         entry: ./scripts/test.sh

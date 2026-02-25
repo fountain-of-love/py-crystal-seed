@@ -3,3 +3,5 @@
 cookiecutter
 pytest
 pre-commit
+ruff
+pyright

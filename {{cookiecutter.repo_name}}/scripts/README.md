@@ -66,6 +66,42 @@ It enforces a single, canonical way of running tests.
 
 ---
 
+## `lint.sh`
+
+Runs Ruff linting and formatting checks in validation mode.
+
+### Usage
+
+```bash
+./scripts/lint.sh
+```
+
+---
+
+## `format.sh`
+
+Applies Ruff autofixes and formatting.
+
+### Usage
+
+```bash
+./scripts/format.sh
+```
+
+---
+
+## `typecheck.sh`
+
+Runs static type checks with Pyright.
+
+### Usage
+
+```bash
+./scripts/typecheck.sh
+```
+
+---
+
 ## Philosophy
 
 These scripts are not meant to hide complexity.
@@ -73,11 +109,5 @@ They exist to **encode the correct order of operations** so contributors do not 
 
 They act as executable documentation for how the project is meant to be used.
 
----
-
-Potential next steps you can help to add:
-
-* `test.sh` (runs tests with the correct interpreter)
-* `lint.sh` (ruff / formatting)
-* `typecheck.sh` (pyright / mypy)
-* and wire all of them into pre-commit and CI so everything runs from one consistent toolchain
+For smoke orchestration and architecture guardrails, see:
+- `tools/README.md`

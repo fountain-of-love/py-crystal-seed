@@ -59,8 +59,8 @@ python3.12 -m venv venv
 # Install project in editable mode
 ./venv/bin/python -m pip install -e .
 
-# Install pytest into the environment
-./venv/bin/python -m pip install pytest
+# Install dev dependencies (pytest, ruff, pyright, pre-commit)
+./venv/bin/python -m pip install -e '.[dev]'
 ```
 
 You should now be able to run tests from this environment.
@@ -75,7 +75,6 @@ From project root:
 
 ```bash
 source venv/bin/activate
-pip install pytest
 pytest -q
 ```
 
@@ -115,11 +114,14 @@ pytest
 
 ## Quality gates with pre-commit
 
-This project uses `pre-commit` to ensure that commits do not introduce failing code.
+This project uses `pre-commit` to ensure that commits do not introduce quality regressions.
 
-The pre-commit hook runs the project’s canonical test command:
+The pre-commit hooks run:
 
 ```bash
+./scripts/lint.sh
+./scripts/typecheck.sh
+./tools/check_version_import_boundaries.py
 ./scripts/test.sh
 ```
 
@@ -140,17 +142,22 @@ pre-commit install
 ### What happens on commit?
 
 On every git commit:
-- the test suite is executed 
-- if tests fail, the commit is blocked 
-- if tests pass, the commit proceeds normally
+- Ruff lint and format checks are executed
+- Pyright type checks are executed
+- version import-boundary checks are executed
+- the test suite is executed
+- if any check fails, the commit is blocked
 
-This ensures broken code cannot be committed accidentally.
+This ensures style, type safety, and behavior stay healthy before code is committed.
 
 ### Run manually
 
 You can run the same checks manually at any time:
 
 ```bash
+./scripts/lint.sh
+./scripts/typecheck.sh
+./venv/bin/python ./tools/check_version_import_boundaries.py
 ./scripts/test.sh
 ```
 
@@ -232,6 +239,9 @@ You may optionally formalize dev tools in `pyproject.toml`:
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "ruff",
+    "pyright",
+    "pre-commit",
 ]
 ```
 
@@ -247,10 +257,11 @@ pip install -e '.[dev]'
 
 Python has no traditional "compile-time", so correctness is enforced through:
 
+* Ruff + Pyright (local static analysis)
 * pytest (local runs)
 * IDE test runner (PyCharm)
 * CI pipelines (e.g. GitHub Actions)
-* optional pre-commit hooks
+* pre-commit hooks
 
 This ensures tests fail fast when behavior regresses.
 
