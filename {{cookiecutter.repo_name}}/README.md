@@ -11,6 +11,7 @@ It includes best practices out of the box:
 - pre-commit hooks for local quality gates
 - Ruff linting and formatting checks
 - Pyright static type checks
+- Optional packaging/publishing pipeline (build, artifact checks, release workflows)
 - pytest-based test suite
 - CI-ready structure automatically via GitHub Actions on push/PR (see .github/workflows/tests.yml).
 
@@ -78,6 +79,12 @@ make test    # run tests only
 make lint    # run Ruff checks
 make format  # apply Ruff formatting/fixes
 make typecheck # run Pyright checks
+make package-build   # build wheel + sdist
+make package-check   # validate dist metadata with twine
+make package-install # install built wheel locally
+make docs-drift      # enforce docs drift policy
+make release-policy  # enforce SemVer/tag/changelog policy
+make release-ready   # run full release readiness gate
 make clean   # remove virtualenv and caches
 ```
 
@@ -87,6 +94,7 @@ For more details, see:
 * `dev-ops/README.md`
 * `ENGINEERING_PRACTICES.md`
 * `tools/README.md`
+* `RELEASING.md`
 
 ---
 

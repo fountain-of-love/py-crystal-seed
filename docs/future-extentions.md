@@ -59,12 +59,13 @@ Predictability is key for external adopters and internal stability.
 ---
 
 ## 4. Packaging for distribution
-If this project evolves into a library, we must prepare it for the broader Python ecosystem.
+The template now includes a dedicated packaging lane (`build`, `twine check`, TestPyPI/PyPI publish workflows).
+Next maturity is policy and governance hardening for distribution.
 
 **Next Steps:**
-* Establish a publishing workflow to **PyPI**.
-* Ensure a standard `LICENSE` file is included.
-* Expand metadata in `pyproject.toml` (e.g., maintainers, keywords, project URLs).
+* Add/confirm a project `LICENSE` aligned with intended distribution.
+* Expand metadata in `pyproject.toml` (keywords, classifiers, maintainers).
+* Add signed artifacts and provenance (optional, for stricter supply-chain controls).
 
 **Benefits:** Professional distribution and seamless integration as a reusable dependency.
 

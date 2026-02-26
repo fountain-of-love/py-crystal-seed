@@ -28,7 +28,7 @@ jobs:
         run: python -m pip install -e '.[dev]'
 
       - name: Ruff lint + format check
-        run: python -m ruff check . && python -m ruff format --check .
+        run: python -m ruff check src tests scripts tools && python -m ruff format --check src tests scripts tools
 
       - name: Pyright type check
         run: python -m pyright

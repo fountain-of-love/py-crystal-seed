@@ -17,8 +17,8 @@ import ast
 import os
 import re
 import sys
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 VERSION_RE = re.compile(r"^v(\d+)$")
 
@@ -92,7 +92,12 @@ def _check_import(
 
 
 def main() -> int:
-    repo_root = Path(__file__).resolve().parents[1]
+    repo_root_env = os.getenv("REPO_ROOT", "").strip()
+    repo_root = (
+        Path(repo_root_env).resolve()
+        if repo_root_env
+        else Path(__file__).resolve().parents[1]
+    )
     src_root = repo_root / "src"
 
     root_package = os.getenv("ROOT_PACKAGE", "").strip() or _discover_root_package(src_root)

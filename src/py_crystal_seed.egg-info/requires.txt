@@ -5,3 +5,5 @@ pytest
 pre-commit
 ruff
 pyright
+build
+twine

@@ -43,6 +43,12 @@ make format     # ruff autofix + format
 make typecheck  # pyright
 make test       # pytest
 make check      # full local gate (smoke + pre-commit)
+make package-build   # build wheel + sdist
+make package-check   # validate package metadata
+make package-install # install built wheel locally
+make docs-drift      # enforce docs drift policy
+make release-policy  # enforce SemVer/tag/changelog policy
+make release-ready   # run full release readiness gate
 ```
 
 ## How to Generate Projects from This Template

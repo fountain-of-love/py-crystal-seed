@@ -11,6 +11,7 @@ This documentation is designed to guide contributors through a structured develo
 * [Quality Gate Architecture](#quality-gate-architecture) — *Our strategy for automated health checks and pre-commit hooks.*
 * [Commit Plan](#commit-plan) — *The step-by-step evolution from basic structure to a professional template.*
 * [Developer Operations (dev-ops)](#developer-operations) — *Workflows, environment setup, and quality gate usage.*
+* [Packaging & Distribution](#packaging--distribution) — *Build, validate, and publish package artifacts via a dedicated lane.*
 
 ---
 
@@ -42,6 +43,16 @@ Link: [Makefile](make.md)
 Automatically run the test suite on every push and pull request, across multiple Python versions.
 
 Link: [CI pipeline](ci-pipeline.md)
+
+### Packaging & distribution
+Build, validate, and publish Python distributions via an isolated packaging lane and dedicated CI workflows.
+
+Link: [Packaging & distribution](packaging-distribution.md)
+
+### Releasing
+Promotion and rollback playbook for TestPyPI/PyPI publication.
+
+Link: [Releasing](../RELEASING.md)
 
 ### Template repository
 Documentation to make this repo reusable via *Use this template* on Github.

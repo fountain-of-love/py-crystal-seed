@@ -6,8 +6,21 @@ build-backend = "setuptools.build_meta"
 name = "{{cookiecutter.repo_name}}"
 version = "0.1.0"
 description = "{{cookiecutter.project_description}}"
+readme = "README.md"
 requires-python = ">={{cookiecutter.python_min_version}}"
-authors = [{ name = "{{cookiecutter.author_name}}" }]
+authors = [{ name = "{{cookiecutter.author_name}}", email = "{{cookiecutter.author_email}}" }]
+license = "MIT"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: {{cookiecutter.python_min_version}}",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://example.com/{{cookiecutter.repo_name}}"
+Repository = "https://example.com/{{cookiecutter.repo_name}}"
+Issues = "https://example.com/{{cookiecutter.repo_name}}/issues"
 
 [project.optional-dependencies]
 dev = [
@@ -15,6 +28,8 @@ dev = [
     "pre-commit",
     "ruff",
     "pyright",
+    "build",
+    "twine",
 ]
 
 [tool.setuptools]

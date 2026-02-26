@@ -27,3 +27,28 @@ Allowed examples:
 Forbidden examples:
 - `from pkg.versions.v5 import spine`
 - `import pkg.versions.v5.signals`
+
+## `check_docs_drift.py`
+
+Enforces documentation guardrails:
+- required documentation files must exist
+- when `DIFF_BASE` is provided, applies change-aware rules (for example, script/CI/tool changes must include doc updates)
+
+Usage:
+
+```bash
+./venv/bin/python ./tools/check_docs_drift.py
+```
+
+## `check_release_policy.py`
+
+Enforces release policy guardrails:
+- `pyproject.toml` version must be SemVer
+- on tag builds, tag/version must match
+- on PR builds with `DIFF_BASE`, version changes require `CHANGELOG.md` updates
+
+Usage:
+
+```bash
+./venv/bin/python ./tools/check_release_policy.py
+```

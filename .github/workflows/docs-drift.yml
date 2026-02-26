@@ -1,0 +1,19 @@
+name: docs-drift
+
+on:
+  pull_request:
+
+jobs:
+  docs-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check documentation drift policy
+        env:
+          DIFF_BASE: ${{ github.event.pull_request.base.sha }}
+          DIFF_HEAD: ${{ github.sha }}
+        run: python tools/check_docs_drift.py

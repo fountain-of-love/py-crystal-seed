@@ -51,3 +51,11 @@ CI is a **Quality Gate** layer:
 - remote quality gate: CI (push/PR-time)
 
 Together they prevent regressions from entering the template history.
+
+## Packaging CI (separate lane)
+
+Packaging is handled in dedicated workflows so it does not interfere with default development checks:
+
+- `package-validation.yml`: build + twine check + wheel install smoke (push/PR)
+- `publish-testpypi.yml`: publish to TestPyPI (manual)
+- `publish-pypi.yml`: publish to PyPI (manual/release)

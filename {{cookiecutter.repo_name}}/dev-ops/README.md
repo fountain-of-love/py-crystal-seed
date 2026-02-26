@@ -267,6 +267,32 @@ This ensures tests fail fast when behavior regresses.
 
 ---
 
+## Packaging & Distribution (Optional Lane)
+
+Packaging and publishing are intentionally separated from the default development lane.
+
+Use:
+
+```bash
+make package-build
+make package-check
+make package-install
+```
+
+Publish commands:
+
+```bash
+make package-publish-test   # requires TEST_PYPI_API_TOKEN
+make package-publish        # requires PYPI_API_TOKEN
+```
+
+CI workflows:
+- `package-validation.yml` validates build artifacts on push/PR
+- `publish-testpypi.yml` publishes to TestPyPI (manual)
+- `publish-pypi.yml` publishes to PyPI (manual or release)
+
+---
+
 ## Optional: Pre-commit hook (recommended)
 
 To run tests automatically before every commit, create `.pre-commit-config.yaml`:

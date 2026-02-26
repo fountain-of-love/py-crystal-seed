@@ -24,6 +24,8 @@ This repository is a **template project**. It provides:
 * pytest wired correctly (CLI + IDE + CI compatible)
 * Ruff linting and formatting checks
 * Pyright static type checking
+* Optional packaging/publishing pipeline (build, artifact checks, release workflows)
+* Release policy + docs-drift governance checks
 * Editable installs (`pip install -e .`)
 * A minimal but real test
 * A minimal but real package
@@ -217,6 +219,10 @@ See:
 See the full development guide in **[dev-ops/README.md](dev-ops/README.md)**.
 For Codex/maintainer workflow and template contribution rules, see
 **[DEVELOPER_README.md](DEVELOPER_README.md)**.
+For packaging and publishing workflow details, see
+**[docs/packaging-distribution.md](docs/packaging-distribution.md)**.
+For release promotion and rollback steps, see
+**[RELEASING.md](RELEASING.md)**.
 
 ---
 

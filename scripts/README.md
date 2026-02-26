@@ -102,6 +102,72 @@ Runs static type checks with Pyright.
 
 ---
 
+## `build_dist.sh`
+
+Builds wheel and source distributions into `dist/`.
+
+### Usage
+
+```bash
+./scripts/build_dist.sh
+```
+
+---
+
+## `check_dist.sh`
+
+Validates built distributions using Twine metadata checks.
+
+### Usage
+
+```bash
+./scripts/check_dist.sh
+```
+
+---
+
+## `install_dist.sh`
+
+Installs the built wheel from `dist/` into the local virtual environment.
+
+### Usage
+
+```bash
+./scripts/install_dist.sh
+```
+
+---
+
+## `publish_testpypi.sh`
+
+Publishes current `dist/` artifacts to TestPyPI.
+
+Requires:
+- `TEST_PYPI_API_TOKEN`
+
+### Usage
+
+```bash
+./scripts/publish_testpypi.sh
+```
+
+---
+
+## `publish_pypi.sh`
+
+Publishes current `dist/` artifacts to PyPI.
+
+Requires:
+- `PYPI_API_TOKEN`
+
+### Usage
+
+```bash
+./scripts/publish_pypi.sh
+```
+
+---
+
 ## Philosophy
 
 These scripts are not meant to hide complexity.

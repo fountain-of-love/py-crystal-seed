@@ -6,7 +6,23 @@ build-backend = "setuptools.build_meta"
 name = "py-crystal-seed"
 version = "0.1.0"
 description = "A professional Python project template"
+readme = "README.md"
 requires-python = ">=3.10"
+authors = [{ name = "py-crystal-seed maintainers" }]
+license = "MIT"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-org/py-crystal-seed"
+Repository = "https://github.com/your-org/py-crystal-seed"
+Issues = "https://github.com/your-org/py-crystal-seed/issues"
 
 [project.optional-dependencies]
 dev = [
@@ -15,6 +31,8 @@ dev = [
     "pre-commit",
     "ruff",
     "pyright",
+    "build",
+    "twine",
 ]
 
 [tool.setuptools]
