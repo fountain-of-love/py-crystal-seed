@@ -65,3 +65,7 @@ Governance workflows:
 - `docs-drift.yml`: enforces docs update policy on PRs
 - `release-policy.yml`: validates SemVer/tag/changelog policy
 - `governance-waivers.yml`: validates waiver registry and expiry
+
+Supply-chain workflows:
+- `supply-chain.yml`: dependency integrity, vulnerability scan, CycloneDX SBOM artifact
+- `package-validation.yml` additionally emits provenance attestations for `dist/*`

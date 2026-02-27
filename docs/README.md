@@ -54,6 +54,11 @@ Promotion and rollback playbook for TestPyPI/PyPI publication.
 
 Link: [Releasing](../RELEASING.md)
 
+### Supply-chain & operations
+Dependency security scanning, SBOM generation, and artifact provenance controls.
+
+Link: [Supply-chain & operations](supply-chain-operations.md)
+
 ### Template repository
 Documentation to make this repo reusable via *Use this template* on Github.
 

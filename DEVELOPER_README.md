@@ -50,6 +50,9 @@ make docs-drift      # enforce docs drift policy
 make waivers-check   # validate waiver registry and expiry
 make release-policy  # enforce SemVer/tag/changelog policy
 make release-ready   # run full release readiness gate
+make supplychain-scan # dependency integrity + vulnerability scan
+make sbom            # generate CycloneDX SBOM
+make supplychain-check # run supply-chain scan + SBOM generation
 ```
 
 ## How to Generate Projects from This Template

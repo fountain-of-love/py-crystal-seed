@@ -36,6 +36,14 @@ make release-policy
 make release-ready
 ```
 
+Supply-chain commands:
+
+```bash
+make supplychain-scan
+make sbom
+make supplychain-check
+```
+
 ## Pipeline Structure
 
 ### 1) Validation workflow

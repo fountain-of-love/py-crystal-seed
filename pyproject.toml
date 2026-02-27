@@ -33,6 +33,9 @@ dev = [
     "pyright",
     "build",
     "twine",
+    "pip-audit",
+    "cyclonedx-bom",
+    "pyyaml",
 ]
 
 [tool.setuptools]

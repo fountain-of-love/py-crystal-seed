@@ -222,6 +222,8 @@ For Codex/maintainer workflow and template contribution rules, see
 **[DEVELOPER_README.md](DEVELOPER_README.md)**.
 For packaging and publishing workflow details, see
 **[docs/packaging-distribution.md](docs/packaging-distribution.md)**.
+For supply-chain and operations hardening controls, see
+**[docs/supply-chain-operations.md](docs/supply-chain-operations.md)**.
 For release promotion and rollback steps, see
 **[RELEASING.md](RELEASING.md)**.
 

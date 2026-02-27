@@ -168,6 +168,31 @@ Requires:
 
 ---
 
+## `security_scan.sh`
+
+Runs dependency integrity and vulnerability checks.
+It upgrades `pip` and `wheel` in the local virtual environment before running `pip-audit`.
+
+### Usage
+
+```bash
+./scripts/security_scan.sh
+```
+
+---
+
+## `generate_sbom.sh`
+
+Generates a CycloneDX SBOM at `artifacts/sbom/cyclonedx-sbom.json`.
+
+### Usage
+
+```bash
+./scripts/generate_sbom.sh
+```
+
+---
+
 ## Philosophy
 
 These scripts are not meant to hide complexity.

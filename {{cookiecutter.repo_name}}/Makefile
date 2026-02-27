@@ -1,7 +1,7 @@
 VENV := venv
 PY := $(VENV)/bin/python
 
-.PHONY: setup check smoke docs-drift waivers-check release-policy release-ready test lint format typecheck package-build package-check package-install package-publish-test package-publish hooks hooks-refresh clean help
+.PHONY: setup check smoke docs-drift waivers-check release-policy release-ready supplychain-scan sbom supplychain-check test lint format typecheck package-build package-check package-install package-publish-test package-publish hooks hooks-refresh clean help
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?##' Makefile | awk 'BEGIN {FS = ":.*?## "}; {printf "%-15s %s\n", $$1, $$2}'
@@ -17,6 +17,8 @@ setup: ## Create environment, install dev deps, install hooks
 	@chmod +x scripts/install_dist.sh || true
 	@chmod +x scripts/publish_testpypi.sh || true
 	@chmod +x scripts/publish_pypi.sh || true
+	@chmod +x scripts/security_scan.sh || true
+	@chmod +x scripts/generate_sbom.sh || true
 	@chmod +x tools/smoke_matrix.sh || true
 	@chmod +x tools/check_docs_drift.py || true
 	@chmod +x tools/check_waivers.py || true
@@ -51,6 +53,16 @@ release-ready: ## Run release readiness gate (quality + package build/check)
 	@$(MAKE) package-build
 	@$(MAKE) package-check
 
+supplychain-scan: ## Run dependency integrity/vulnerability scanning
+	@./scripts/security_scan.sh
+
+sbom: ## Generate CycloneDX SBOM artifact
+	@./scripts/generate_sbom.sh
+
+supplychain-check: ## Run supply-chain checks (scan + sbom)
+	@$(MAKE) supplychain-scan
+	@$(MAKE) sbom
+
 lint: ## Run Ruff linting + formatting checks
 	@./scripts/lint.sh
 
@@ -84,4 +96,4 @@ hooks-refresh: ## Clean and reinstall hooks
 	@$(PY) -m pre_commit install
 
 clean: ## Remove virtualenv and caches
-	rm -rf $(VENV) .pytest_cache .ruff_cache .pyright dist build *.egg-info src/*.egg-info __pycache__
+	rm -rf $(VENV) .pytest_cache .ruff_cache .pyright dist build artifacts *.egg-info src/*.egg-info __pycache__

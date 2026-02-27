@@ -6,3 +6,9 @@ __pycache__/
 .dist-info/
 .build/
 .idea/
+.ruff_cache/
+.pyright/
+build/
+dist/
+artifacts/
+*.egg-info/
