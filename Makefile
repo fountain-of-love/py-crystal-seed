@@ -2,7 +2,7 @@ VENV := venv
 PY := $(VENV)/bin/python
 CC := $(VENV)/bin/cookiecutter
 
-.PHONY: help setup check smoke docs-drift release-policy release-ready test lint format typecheck package-build package-check package-install package-publish-test package-publish hooks hooks-refresh clean new inject apply-safe
+.PHONY: help setup check smoke docs-drift waivers-check release-policy release-ready test lint format typecheck package-build package-check package-install package-publish-test package-publish hooks hooks-refresh clean new inject apply-safe
 
 # --- Core actions ---
 
@@ -23,6 +23,7 @@ setup: ## Create/refresh environment and install dev tooling
 	@chmod +x scripts/publish_pypi.sh || true
 	@chmod +x tools/smoke_matrix.sh || true
 	@chmod +x tools/check_docs_drift.py || true
+	@chmod +x tools/check_waivers.py || true
 	@chmod +x tools/check_release_policy.py || true
 	@chmod +x scripts/ensure-exec.sh 2>/dev/null || true
 	@./scripts/bootstrap.sh
@@ -68,11 +69,15 @@ smoke: ## Run smoke matrix (lint + typecheck + tests + import-boundary guard)
 docs-drift: ## Check required docs and change-aware docs drift policy
 	@$(PY) ./tools/check_docs_drift.py
 
+waivers-check: ## Validate waiver registry format and expiry rules
+	@$(PY) ./tools/check_waivers.py
+
 release-policy: ## Validate SemVer/tag policy and changelog coupling
 	@$(PY) ./tools/check_release_policy.py
 
 release-ready: ## Run release readiness gate (quality + package build/check)
 	@$(MAKE) check
+	@$(MAKE) waivers-check
 	@$(MAKE) package-build
 	@$(MAKE) package-check
 

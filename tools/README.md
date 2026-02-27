@@ -52,3 +52,17 @@ Usage:
 ```bash
 ./venv/bin/python ./tools/check_release_policy.py
 ```
+
+## `check_waivers.py`
+
+Validates waiver registry policy (`waivers/waivers.yml`):
+- required fields present
+- `expires` is valid ISO date and not expired
+- `approvers` is a non-empty list
+- emits CI summary for active/expiring waivers when supported
+
+Usage:
+
+```bash
+./venv/bin/python ./tools/check_waivers.py
+```

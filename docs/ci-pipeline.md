@@ -57,5 +57,11 @@ Together they prevent regressions from entering the template history.
 Packaging is handled in dedicated workflows so it does not interfere with default development checks:
 
 - `package-validation.yml`: build + twine check + wheel install smoke (push/PR)
+- `package-install-matrix.yml`: cross-OS / cross-Python artifact install verification
 - `publish-testpypi.yml`: publish to TestPyPI (manual)
 - `publish-pypi.yml`: publish to PyPI (manual/release)
+
+Governance workflows:
+- `docs-drift.yml`: enforces docs update policy on PRs
+- `release-policy.yml`: validates SemVer/tag/changelog policy
+- `governance-waivers.yml`: validates waiver registry and expiry

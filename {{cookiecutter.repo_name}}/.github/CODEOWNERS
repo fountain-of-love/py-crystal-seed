@@ -1,0 +1,12 @@
+# Update to real maintainers/users for your repository.
+* @your-org/repo-maintainers
+
+# Waiver policy must have explicit owner review.
+waivers/** @your-org/repo-maintainers
+
+# Governance/release workflows are protected.
+.github/workflows/release-policy.yml @your-org/repo-maintainers
+.github/workflows/docs-drift.yml @your-org/repo-maintainers
+.github/workflows/governance-waivers.yml @your-org/repo-maintainers
+.github/workflows/publish-pypi.yml @your-org/repo-maintainers
+.github/workflows/publish-testpypi.yml @your-org/repo-maintainers

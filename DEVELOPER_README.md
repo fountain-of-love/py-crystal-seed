@@ -47,6 +47,7 @@ make package-build   # build wheel + sdist
 make package-check   # validate package metadata
 make package-install # install built wheel locally
 make docs-drift      # enforce docs drift policy
+make waivers-check   # validate waiver registry and expiry
 make release-policy  # enforce SemVer/tag/changelog policy
 make release-ready   # run full release readiness gate
 ```

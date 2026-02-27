@@ -26,6 +26,7 @@ This repository is a **template project**. It provides:
 * Pyright static type checking
 * Optional packaging/publishing pipeline (build, artifact checks, release workflows)
 * Release policy + docs-drift governance checks
+* Waiver registry governance with explicit expiry/ownership checks
 * Editable installs (`pip install -e .`)
 * A minimal but real test
 * A minimal but real package

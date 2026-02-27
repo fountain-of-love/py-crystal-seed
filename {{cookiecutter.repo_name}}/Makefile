@@ -1,7 +1,7 @@
 VENV := venv
 PY := $(VENV)/bin/python
 
-.PHONY: setup check smoke docs-drift release-policy release-ready test lint format typecheck package-build package-check package-install package-publish-test package-publish hooks hooks-refresh clean help
+.PHONY: setup check smoke docs-drift waivers-check release-policy release-ready test lint format typecheck package-build package-check package-install package-publish-test package-publish hooks hooks-refresh clean help
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?##' Makefile | awk 'BEGIN {FS = ":.*?## "}; {printf "%-15s %s\n", $$1, $$2}'
@@ -19,6 +19,7 @@ setup: ## Create environment, install dev deps, install hooks
 	@chmod +x scripts/publish_pypi.sh || true
 	@chmod +x tools/smoke_matrix.sh || true
 	@chmod +x tools/check_docs_drift.py || true
+	@chmod +x tools/check_waivers.py || true
 	@chmod +x tools/check_release_policy.py || true
 	@./scripts/bootstrap.sh
 	@$(PY) -m pip install -e '.[dev]'
@@ -38,11 +39,15 @@ smoke: ## Run smoke matrix (lint + typecheck + tests + import-boundary guard)
 docs-drift: ## Check required docs and change-aware docs drift policy
 	@$(PY) ./tools/check_docs_drift.py
 
+waivers-check: ## Validate waiver registry format and expiry rules
+	@$(PY) ./tools/check_waivers.py
+
 release-policy: ## Validate SemVer/tag policy and changelog coupling
 	@$(PY) ./tools/check_release_policy.py
 
 release-ready: ## Run release readiness gate (quality + package build/check)
 	@$(MAKE) check
+	@$(MAKE) waivers-check
 	@$(MAKE) package-build
 	@$(MAKE) package-check
 

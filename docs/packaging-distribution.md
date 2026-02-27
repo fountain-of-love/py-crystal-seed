@@ -31,6 +31,7 @@ Additional governance commands:
 
 ```bash
 make docs-drift
+make waivers-check
 make release-policy
 make release-ready
 ```
