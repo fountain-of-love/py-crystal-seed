@@ -12,6 +12,25 @@ VERSION_RE = re.compile(
     r"(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$"
 )
 
+RELEASE_TRUST_RULES: dict[str, tuple[str, ...]] = {
+    ".github/workflows/publish-testpypi.yml": (
+        "Sign distributions with Sigstore",
+        "Enforce signature bundles for all artifacts",
+        "Verify signed artifacts in isolated publish job",
+    ),
+    ".github/workflows/publish-pypi.yml": (
+        "Sign distributions with Sigstore",
+        "Enforce signature bundles for all artifacts",
+        "Verify signed artifacts in isolated publish job",
+    ),
+    ".gitlab-ci.yml": (
+        "gitlab-release-build-sign",
+        "gitlab-release-verify-gate",
+        "gitlab-release-publish-testpypi",
+        "gitlab-release-publish-pypi",
+    ),
+}
+
 
 def _read_project_version(pyproject: Path) -> str:
     return _read_project_version_from_text(pyproject.read_text(encoding="utf-8"))
@@ -54,6 +73,27 @@ def _normalized_tag(tag: str) -> str:
     return cleaned[1:] if cleaned.startswith("v") else cleaned
 
 
+def _check_release_trust_workflows() -> list[str]:
+    violations: list[str] = []
+    checked_workflows = 0
+    for workflow_path, required_markers in RELEASE_TRUST_RULES.items():
+        workflow = Path(workflow_path)
+        if not workflow.exists():
+            continue
+        checked_workflows += 1
+        text = workflow.read_text(encoding="utf-8")
+        for marker in required_markers:
+            if marker not in text:
+                violations.append(
+                    f"Workflow {workflow_path} missing required trust step marker: {marker!r}"
+                )
+    if checked_workflows == 0:
+        violations.append(
+            "No release pipeline definition found (.github/workflows/* or .gitlab-ci.yml)."
+        )
+    return violations
+
+
 def main() -> int:
     pyproject = Path("pyproject.toml")
     if not pyproject.exists():
@@ -68,6 +108,13 @@ def main() -> int:
 
     if not VERSION_RE.match(version):
         print(f"[release-policy] Invalid SemVer version: {version}")
+        return 1
+
+    workflow_violations = _check_release_trust_workflows()
+    if workflow_violations:
+        print("[release-policy] Release trust workflow policy violations:")
+        for item in workflow_violations:
+            print(f"  - {item}")
         return 1
 
     release_tag = os.environ.get("RELEASE_TAG", "").strip()

@@ -42,6 +42,7 @@ Supply-chain commands:
 make supplychain-scan
 make sbom
 make supplychain-check
+make verify-signatures # verify Sigstore bundles in dist/
 ```
 
 ## Pipeline Structure
@@ -87,6 +88,36 @@ Recommended:
 - protect the `pypi` environment in GitHub with required reviewers
 - publish to TestPyPI first, then promote to PyPI
 - keep local token-based publish scripts for emergency/manual fallback only
+
+### 4) GitLab release gate pipeline
+
+File:
+- `.gitlab-ci.yml`
+
+Tag release flow:
+1. `release_build_sign` builds distributions and signs with Sigstore (keyless via GitLab OIDC token).
+2. `release_verify_gate` downloads prior artifacts and verifies signatures before any publish.
+3. `release_publish_testpypi` / `release_publish_pypi` are manual and depend on verify gate success.
+
+## Release trust controls
+
+Both publish workflows now enforce:
+1. release-policy validation (`tools/check_release_policy.py`)
+2. `build-sign` job creates and signs `dist/*.whl` and `dist/*.tar.gz`
+3. `verify-publish` job downloads those artifacts and re-verifies signatures in an isolated job boundary
+4. hard failure if any distribution is missing a `.sigstore.json` bundle
+
+Local verification command:
+
+```bash
+SIGSTORE_CERT_IDENTITY="https://github.com/<org>/<repo>/.github/workflows/publish-pypi.yml@refs/tags/vX.Y.Z" make verify-signatures
+```
+
+GitLab CI/CD variables needed for gated publish:
+- `SIGSTORE_CERT_IDENTITY` (expected signing identity for verify gate)
+- optional `SIGSTORE_OIDC_ISSUER` (defaults to `https://gitlab.com`)
+- `TEST_PYPI_API_TOKEN` for TestPyPI publish job
+- `PYPI_API_TOKEN` for PyPI publish job
 
 ## Why This Is Kept Separate
 

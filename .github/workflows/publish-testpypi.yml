@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish:
+  build-sign:
     runs-on: ubuntu-latest
-    environment: testpypi
     permissions:
+      contents: read
       id-token: write
     steps:
       - name: Checkout
@@ -18,18 +18,101 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Upgrade pip
-        run: python -m pip install -U pip
+      - name: Upgrade packaging toolchain
+        run: python -m pip install -U pip wheel
 
       - name: Install project (dev)
         run: python -m pip install -e '.[dev]'
+
+      - name: Validate release policy
+        run: python tools/check_release_policy.py
 
       - name: Build and validate distributions
         run: |
           python -m build
           python -m twine check dist/*
 
+      - name: Sign distributions with Sigstore
+        uses: sigstore/gh-action-sigstore-python@v3.0.0
+        with:
+          inputs: |
+            dist/*.whl
+            dist/*.tar.gz
+          upload-signing-artifacts: true
+          verify: true
+          verify-cert-identity: "https://github.com/${{ github.repository }}/.github/workflows/publish-testpypi.yml@${{ github.ref }}"
+          verify-oidc-issuer: "https://token.actions.githubusercontent.com"
+
+      - name: Enforce signature bundles for all artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          artifacts=(dist/*.whl dist/*.tar.gz)
+          if [ ${#artifacts[@]} -eq 0 ]; then
+            echo "No dist artifacts found to sign."
+            exit 1
+          fi
+          for artifact in "${artifacts[@]}"; do
+            bundle="${artifact}.sigstore.json"
+            if [ ! -f "$bundle" ]; then
+              echo "Missing Sigstore bundle: $bundle"
+              exit 1
+            fi
+          done
+
+      - name: Upload signed distribution bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-dist-testpypi
+          path: dist/*
+
+  verify-publish:
+    runs-on: ubuntu-latest
+    needs: [build-sign]
+    environment: testpypi
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Upgrade tooling for verification
+        run: python -m pip install -U pip sigstore
+
+      - name: Download signed distribution bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: signed-dist-testpypi
+          path: dist
+
+      - name: Verify signed artifacts in isolated publish job
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          artifacts=(dist/*.whl dist/*.tar.gz)
+          if [ ${#artifacts[@]} -eq 0 ]; then
+            echo "No distribution artifacts found."
+            exit 1
+          fi
+          for artifact in "${artifacts[@]}"; do
+            bundle="${artifact}.sigstore.json"
+            if [ ! -f "$bundle" ]; then
+              echo "Missing Sigstore bundle: $bundle"
+              exit 1
+            fi
+            python -m sigstore verify identity "$artifact" \
+              --bundle "$bundle" \
+              --cert-identity "https://github.com/${{ github.repository }}/.github/workflows/publish-testpypi.yml@${{ github.ref }}" \
+              --cert-oidc-issuer "https://token.actions.githubusercontent.com"
+          done
+
       - name: Publish to TestPyPI (Trusted Publishing)
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
+          packages-dir: dist
           repository-url: https://test.pypi.org/legacy/

@@ -10,6 +10,7 @@ Raise confidence in dependency integrity and artifact trust without slowing defa
 make supplychain-scan   # pip check + pip-audit
 make sbom               # generate CycloneDX SBOM
 make supplychain-check  # scan + sbom
+make verify-signatures  # verify Sigstore bundles in dist/
 ```
 
 `make supplychain-scan` upgrades the local packaging toolchain (`pip`, `wheel`) before vulnerability scanning, so advisories in outdated bootstrap tooling do not create false negatives/positives in normal project scans.
@@ -27,6 +28,14 @@ SBOM output:
 - `package-validation.yml` (enhanced)
   - uploads distribution artifacts
   - emits build provenance attestation for `dist/*`
+- `publish-testpypi.yml` and `publish-pypi.yml` (enhanced)
+  - sign artifacts with Sigstore
+  - verify signatures in an isolated downstream publish job
+  - fail publish when required `.sigstore.json` bundles are missing
+- `.gitlab-ci.yml` release lane
+  - `release_build_sign` signs artifacts on tag pipelines
+  - `release_verify_gate` verifies signatures before any publish job can run
+  - manual publish jobs are blocked until verification passes
 
 ## Why This Is Separate
 

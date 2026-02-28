@@ -193,6 +193,22 @@ Generates a CycloneDX SBOM at `artifacts/sbom/cyclonedx-sbom.json`.
 
 ---
 
+## `verify_signatures.sh`
+
+Verifies Sigstore bundles for distributions in `dist/`.
+
+Requires:
+- `SIGSTORE_CERT_IDENTITY`
+- optional `SIGSTORE_OIDC_ISSUER` (defaults to `https://token.actions.githubusercontent.com`)
+
+### Usage
+
+```bash
+SIGSTORE_CERT_IDENTITY="https://github.com/<org>/<repo>/.github/workflows/publish-pypi.yml@refs/tags/v0.1.0" ./scripts/verify_signatures.sh
+```
+
+---
+
 ## Philosophy
 
 These scripts are not meant to hide complexity.

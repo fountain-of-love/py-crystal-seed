@@ -36,6 +36,7 @@ dev = [
     "pip-audit",
     "cyclonedx-bom",
     "pyyaml",
+    "sigstore",
 ]
 
 [tool.setuptools]

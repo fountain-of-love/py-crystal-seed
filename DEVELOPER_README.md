@@ -52,6 +52,7 @@ make release-policy  # enforce SemVer/tag/changelog policy
 make release-ready   # run full release readiness gate
 make supplychain-scan # dependency integrity + vulnerability scan
 make sbom            # generate CycloneDX SBOM
+make verify-signatures # verify Sigstore bundles for dist artifacts
 make supplychain-check # run supply-chain scan + SBOM generation
 ```
 

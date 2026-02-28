@@ -60,6 +60,13 @@ Packaging is handled in dedicated workflows so it does not interfere with defaul
 - `package-install-matrix.yml`: cross-OS / cross-Python artifact install verification
 - `publish-testpypi.yml`: publish to TestPyPI (manual)
 - `publish-pypi.yml`: publish to PyPI (manual/release)
+- both publish workflows enforce a two-job trust boundary (`build-sign` -> `verify-publish`) with Sigstore verification and fail on missing signature bundles
+
+GitLab release-gate lane:
+- `.gitlab-ci.yml`:
+  - `release_build_sign` (tag-only): build + twine check + Sigstore signing
+  - `release_verify_gate` (tag-only): verifies signed artifacts from prior job before publish
+  - `release_publish_testpypi` / `release_publish_pypi` (manual): blocked until verify gate passes
 
 Governance workflows:
 - `docs-drift.yml`: enforces docs update policy on PRs

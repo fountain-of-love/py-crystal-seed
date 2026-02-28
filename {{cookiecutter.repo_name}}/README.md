@@ -12,6 +12,7 @@ It includes best practices out of the box:
 - Ruff linting and formatting checks
 - Pyright static type checks
 - Optional packaging/publishing pipeline (build, artifact checks, release workflows)
+- GitLab tag-based release gates (`.gitlab-ci.yml`: build/sign -> verify -> publish)
 - pytest-based test suite
 - CI-ready structure automatically via GitHub Actions on push/PR (see .github/workflows/tests.yml).
 
@@ -88,6 +89,7 @@ make release-policy  # enforce SemVer/tag/changelog policy
 make release-ready   # run full release readiness gate
 make supplychain-scan # dependency integrity + vulnerability scan
 make sbom            # generate CycloneDX SBOM
+make verify-signatures # verify Sigstore bundles for dist artifacts
 make supplychain-check # run supply-chain scan + SBOM generation
 make clean   # remove virtualenv and caches
 ```

@@ -32,6 +32,11 @@ DRIFT_RULES = [
         "message": "CI workflows changed but CI/packaging docs were not updated.",
     },
     {
+        "trigger_prefixes": (".gitlab-ci.yml",),
+        "required_any": ("docs/ci-pipeline.md", "docs/packaging-distribution.md", "README.md"),
+        "message": "GitLab CI changed but CI/packaging docs were not updated.",
+    },
+    {
         "trigger_prefixes": ("tools/",),
         "required_any": ("tools/README.md", "DEVELOPER_README.md"),
         "message": "Tools changed but tool/developer docs were not updated.",

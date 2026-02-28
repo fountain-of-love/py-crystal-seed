@@ -11,7 +11,9 @@ Before any release:
 2. Build and validate artifacts:
    - `make package-build`
    - `make package-check`
-3. Confirm docs/migration notes are updated for user-visible changes.
+3. Verify Sigstore bundles when validating signed artifacts locally:
+   - `SIGSTORE_CERT_IDENTITY="<workflow-identity>" make verify-signatures`
+4. Confirm docs/migration notes are updated for user-visible changes.
 
 ## Trusted Publishing Setup (One-Time)
 
@@ -24,6 +26,11 @@ In GitHub:
 
 - protect environment `testpypi` as needed
 - protect environment `pypi` with required reviewers
+
+For GitLab pipelines (`.gitlab-ci.yml`):
+- set `SIGSTORE_CERT_IDENTITY` in CI/CD variables
+- optionally set `SIGSTORE_OIDC_ISSUER` (default `https://gitlab.com`)
+- set `TEST_PYPI_API_TOKEN` and `PYPI_API_TOKEN` for manual publish jobs
 
 ## Promotion Flow
 
@@ -42,6 +49,8 @@ python -m pip install --index-url https://test.pypi.org/simple/ --extra-index-ur
 python -c "import {{cookiecutter.package_name}}; print({{cookiecutter.package_name}}.__name__)"
 ```
 
+The workflow uses a two-job boundary (`build-sign` then `verify-publish`), re-verifies signatures in the publish job, and fails if signature bundles are missing.
+
 ### Step 2: Publish to PyPI
 
 Run workflow:
@@ -50,6 +59,10 @@ Run workflow:
 Trigger options:
 - manual (`workflow_dispatch`)
 - publish a GitHub release
+
+GitLab equivalent:
+- tag push triggers `release_build_sign` and `release_verify_gate`
+- run `release_publish_testpypi` or `release_publish_pypi` manually after verify gate passes
 
 ### Step 3: Post-Release Verification
 
@@ -62,6 +75,8 @@ python -m pip install -U pip
 python -m pip install {{cookiecutter.repo_name}}==<version>
 python -c "import {{cookiecutter.package_name}}; print({{cookiecutter.package_name}}.__name__)"
 ```
+
+The workflow uses a two-job boundary (`build-sign` then `verify-publish`), re-verifies signatures in the publish job, and fails if signature bundles are missing.
 
 ## Rollback / Recovery
 

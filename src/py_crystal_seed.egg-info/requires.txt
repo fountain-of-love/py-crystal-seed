@@ -10,3 +10,4 @@ twine
 pip-audit
 cyclonedx-bom
 pyyaml
+sigstore

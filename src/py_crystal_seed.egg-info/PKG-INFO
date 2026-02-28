@@ -27,6 +27,7 @@ Requires-Dist: twine; extra == "dev"
 Requires-Dist: pip-audit; extra == "dev"
 Requires-Dist: cyclonedx-bom; extra == "dev"
 Requires-Dist: pyyaml; extra == "dev"
+Requires-Dist: sigstore; extra == "dev"
 Dynamic: license-file
 
 # py-crystal-seed

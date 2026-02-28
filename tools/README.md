@@ -46,6 +46,7 @@ Enforces release policy guardrails:
 - `pyproject.toml` version must be SemVer
 - on tag builds, tag/version must match
 - on PR builds with `DIFF_BASE`, version changes require `CHANGELOG.md` updates
+- release pipelines (GitHub and/or GitLab) must retain Sigstore signing, signature-bundle enforcement, and isolated-job verification steps
 
 Usage:
 

@@ -25,6 +25,7 @@ This repository is a **template project**. It provides:
 * Ruff linting and formatting checks
 * Pyright static type checking
 * Optional packaging/publishing pipeline (build, artifact checks, release workflows)
+* GitLab tag-based release gates (`.gitlab-ci.yml`: build/sign -> verify -> publish)
 * Release policy + docs-drift governance checks
 * Waiver registry governance with explicit expiry/ownership checks
 * Editable installs (`pip install -e .`)
