@@ -37,7 +37,7 @@ Canonical commands:
 
 ```bash
 make setup      # bootstrap env + install dev deps + install pre-commit
-make smoke      # lint + typecheck + tests + version import-boundary guard
+make smoke      # lint + typecheck + tests + version evolution guard
 make lint       # ruff check + format check
 make format     # ruff autofix + format
 make typecheck  # pyright
@@ -54,6 +54,9 @@ make supplychain-scan # dependency integrity + vulnerability scan
 make sbom            # generate CycloneDX SBOM
 make verify-signatures # verify Sigstore bundles for dist artifacts
 make supplychain-check # run supply-chain scan + SBOM generation
+make ops-gate        # run operational hardening gates (perf/leak/recovery/observability)
+make hardening-check # run supply-chain + operational hardening lanes
+./venv/bin/python ./tools/check_version_import_boundaries.py --write-contract # refresh evolution contract intentionally
 ```
 
 ## How to Generate Projects from This Template
@@ -85,6 +88,13 @@ Injection rules are controlled by `hooks/post_gen_project.py` and env vars:
 ## Rules for Contributors and AI Agents
 
 - Keep quality gates deterministic; do not bypass `scripts/*.sh` entrypoints.
+- Preserve lane separation:
+  - fast loop (`make check`)
+  - supply-chain/release trust (`make supplychain-check`, signing/verification flows)
+  - operations hardening (`make ops-gate`)
+- Keep version evolution guardrails active:
+  - `tools/check_version_import_boundaries.py` enforces facade-only previous-version imports
+  - and validates compatibility contracts in `tools/version_evolution_contracts.json` for core symbols used by lower versions
 - Prefer updating scripts/Makefile/CI together when changing tooling.
 - Keep docs in sync with behavior (`README.md`, `dev-ops/README.md`, `scripts/README.md`, template docs).
 - Do not introduce direct edits that break Cookiecutter placeholders in templated files.
@@ -235,3 +245,12 @@ For cross-project PR review standards, use:
 
 For reusable engineering standards across projects, use:
 - `ENGINEERING_PRACTICES.md`
+
+## Dedicated Evolution Guardrail Doc
+
+For the detailed rationale and operating model behind the version-by-version guardrail
+(including the agentic coding pain point it addresses), see:
+- `docs/guardrails/version-evolution-guardrail.md`
+
+For the full list of implemented guardrails, see:
+- `docs/guardrails/README.md`

@@ -13,6 +13,8 @@ It includes best practices out of the box:
 - Pyright static type checks
 - Optional packaging/publishing pipeline (build, artifact checks, release workflows)
 - GitLab tag-based release gates (`.gitlab-ci.yml`: build/sign -> verify -> publish)
+- Operations-hardening gate (`make ops-gate`: perf, leak, recovery, observability)
+- Version evolution guardrail (facade-only cross-version imports + lower-version core contract stability)
 - pytest-based test suite
 - CI-ready structure automatically via GitHub Actions on push/PR (see .github/workflows/tests.yml).
 
@@ -74,7 +76,7 @@ Common commands:
 
 ```bash
 make setup   # bootstrap environment
-make smoke   # run smoke matrix + import-boundary guardrail
+make smoke   # run smoke matrix + version evolution guardrail
 make check   # run smoke matrix + pre-commit hooks
 make test    # run tests only
 make lint    # run Ruff checks
@@ -91,6 +93,8 @@ make supplychain-scan # dependency integrity + vulnerability scan
 make sbom            # generate CycloneDX SBOM
 make verify-signatures # verify Sigstore bundles for dist artifacts
 make supplychain-check # run supply-chain scan + SBOM generation
+make ops-gate        # run perf/leak/recovery/observability gates
+make hardening-check # run supply-chain and operations gates
 make clean   # remove virtualenv and caches
 ```
 
@@ -116,6 +120,16 @@ The template focuses on:
 * early enforcement of quality gates
 
 If you are maintaining this project long-term, you may want to keep that structure intact.
+
+### Why these extra gates exist
+
+The template keeps runtime and release-risk checks explicit so teams do not discover them only in production.
+
+- `make check` is the fast local coding loop.
+- `make supplychain-check` covers dependency and artifact trust concerns.
+- `make ops-gate` validates runtime-facing quality signals (perf, leak, recovery, observability).
+
+This separation keeps developer flow fast while still enforcing high-trust release and operations standards.
 
 ---
 

@@ -8,7 +8,7 @@ Runs the default smoke matrix:
 - Ruff lint/format checks
 - Pyright type checks
 - pytest suite
-- version import-boundary guardrail
+- version evolution guardrail (import boundaries + compatibility contracts)
 
 Usage:
 
@@ -18,7 +18,9 @@ Usage:
 
 ## `check_version_import_boundaries.py`
 
-Fails when a version module (`vN`) imports internals from `v(N-1)` instead of using the previous facade.
+Runs the version evolution guardrail:
+- Cross-version import rule: `vN` cannot import internals from `v(N-1)`; facade-only is allowed.
+- Compatibility hard rule: core contracts used by lower versions must remain stable.
 
 Allowed examples:
 - `from pkg.versions.v5 import facade`
@@ -27,6 +29,15 @@ Allowed examples:
 Forbidden examples:
 - `from pkg.versions.v5 import spine`
 - `import pkg.versions.v5.signals`
+
+Compatibility contract file:
+- `tools/version_evolution_contracts.json`
+
+Refresh contract intentionally:
+
+```bash
+./venv/bin/python ./tools/check_version_import_boundaries.py --write-contract
+```
 
 ## `check_docs_drift.py`
 
@@ -66,4 +77,18 @@ Usage:
 
 ```bash
 ./venv/bin/python ./tools/check_waivers.py
+```
+
+## `run_ops_gates.py`
+
+Runs operational hardening checks:
+- performance threshold check
+- memory growth/leak check
+- recovery/retry behavior check
+- observability event integrity check (structured events + correlation IDs)
+
+Usage:
+
+```bash
+./venv/bin/python ./tools/run_ops_gates.py
 ```

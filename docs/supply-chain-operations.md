@@ -11,6 +11,8 @@ make supplychain-scan   # pip check + pip-audit
 make sbom               # generate CycloneDX SBOM
 make supplychain-check  # scan + sbom
 make verify-signatures  # verify Sigstore bundles in dist/
+make ops-gate           # run perf/leak/recovery/observability gates
+make hardening-check    # run supply-chain + operations hardening lanes
 ```
 
 `make supplychain-scan` upgrades the local packaging toolchain (`pip`, `wheel`) before vulnerability scanning, so advisories in outdated bootstrap tooling do not create false negatives/positives in normal project scans.
@@ -42,3 +44,6 @@ SBOM output:
 - Supply-chain checks can be slower or occasionally noisy due to upstream advisories.
 - The default quality path remains deterministic (`make check`).
 - Release/security posture still gets enforced in dedicated pipelines.
+
+For detailed runtime-facing gate behavior, see:
+- `docs/operations-hardening-gates.md`

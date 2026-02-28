@@ -26,6 +26,8 @@ This repository is a **template project**. It provides:
 * Pyright static type checking
 * Optional packaging/publishing pipeline (build, artifact checks, release workflows)
 * GitLab tag-based release gates (`.gitlab-ci.yml`: build/sign -> verify -> publish)
+* Operations-hardening gate (`make ops-gate`: perf, leak, recovery, observability)
+* Version evolution guardrail (facade-only cross-version imports + lower-version core contract stability)
 * Release policy + docs-drift governance checks
 * Waiver registry governance with explicit expiry/ownership checks
 * Editable installs (`pip install -e .`)
@@ -203,6 +205,17 @@ This template favors:
 
 It is meant for projects that expect to grow.
 
+### Why we add these extra gates
+
+Some checks can look like overhead until they prevent production pain.
+
+This template separates gates by intent:
+- fast developer loop: `make check` (lint, typecheck, tests, architecture guardrails)
+- release trust lane: supply-chain + signing + verification gates
+- operations-hardening lane: `make ops-gate` (performance, leak, recovery, observability)
+
+This keeps day-to-day iteration fast while still making runtime reliability and release trust explicit and testable.
+
 ---
 
 ## Development & Tooling
@@ -225,6 +238,12 @@ For packaging and publishing workflow details, see
 **[docs/packaging-distribution.md](docs/packaging-distribution.md)**.
 For supply-chain and operations hardening controls, see
 **[docs/supply-chain-operations.md](docs/supply-chain-operations.md)**.
+For detailed perf/leak/recovery/observability gate behavior, see
+**[docs/operations-hardening-gates.md](docs/operations-hardening-gates.md)**.
+For version-by-version evolution safety and agentic coding drift prevention, see
+**[docs/guardrails/version-evolution-guardrail.md](docs/guardrails/version-evolution-guardrail.md)**.
+For the full guardrail map, see
+**[docs/guardrails/README.md](docs/guardrails/README.md)**.
 For release promotion and rollback steps, see
 **[RELEASING.md](RELEASING.md)**.
 

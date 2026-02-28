@@ -1,7 +1,7 @@
 VENV := venv
 PY := $(VENV)/bin/python
 
-.PHONY: setup check smoke docs-drift waivers-check release-policy release-ready supplychain-scan sbom verify-signatures supplychain-check test lint format typecheck package-build package-check package-install package-publish-test package-publish hooks hooks-refresh clean help
+.PHONY: setup check smoke docs-drift waivers-check release-policy release-ready ops-gate hardening-check supplychain-scan sbom verify-signatures supplychain-check test lint format typecheck package-build package-check package-install package-publish-test package-publish hooks hooks-refresh clean help
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?##' Makefile | awk 'BEGIN {FS = ":.*?## "}; {printf "%-15s %s\n", $$1, $$2}'
@@ -20,6 +20,7 @@ setup: ## Create environment, install dev deps, install hooks
 	@chmod +x scripts/security_scan.sh || true
 	@chmod +x scripts/generate_sbom.sh || true
 	@chmod +x scripts/verify_signatures.sh || true
+	@chmod +x scripts/ops_gate.sh || true
 	@chmod +x tools/smoke_matrix.sh || true
 	@chmod +x tools/check_docs_drift.py || true
 	@chmod +x tools/check_waivers.py || true
@@ -53,6 +54,13 @@ release-ready: ## Run release readiness gate (quality + package build/check)
 	@$(MAKE) waivers-check
 	@$(MAKE) package-build
 	@$(MAKE) package-check
+
+ops-gate: ## Run operational hardening gates (perf + leak + recovery + observability)
+	@./scripts/ops_gate.sh
+
+hardening-check: ## Run supply-chain and operations hardening gates
+	@$(MAKE) supplychain-check
+	@$(MAKE) ops-gate
 
 supplychain-scan: ## Run dependency integrity/vulnerability scanning
 	@./scripts/security_scan.sh

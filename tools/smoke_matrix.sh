@@ -10,7 +10,7 @@ echo "[smoke] Running type checks"
 echo "[smoke] Running tests"
 ./scripts/test.sh
 
-echo "[smoke] Running version import-boundary guardrail"
+echo "[smoke] Running version evolution guardrail"
 ./venv/bin/python ./tools/check_version_import_boundaries.py
 
 echo "[smoke] Smoke matrix passed"

@@ -1,4 +1,5 @@
 stages:
+  - quality
   - package
   - release
 
@@ -8,6 +9,20 @@ default:
 variables:
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
   PIP_NO_CACHE_DIR: "1"
+
+# gitlab-ops-gates
+ops_gates:
+  stage: quality
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH'
+  script:
+    - set -eu
+    - python -m pip install -U pip wheel
+    - python -m pip install -e '.[dev]'
+    - make ops-gate
 
 # gitlab-release-build-sign
 release_build_sign:

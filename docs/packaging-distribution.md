@@ -43,6 +43,8 @@ make supplychain-scan
 make sbom
 make supplychain-check
 make verify-signatures # verify Sigstore bundles in dist/
+make ops-gate          # run perf/leak/recovery/observability gates
+make hardening-check   # run supply-chain + operations hardening lanes
 ```
 
 ## Pipeline Structure

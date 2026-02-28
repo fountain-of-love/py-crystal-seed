@@ -12,6 +12,9 @@ This documentation is designed to guide contributors through a structured develo
 * [Commit Plan](#commit-plan) — *The step-by-step evolution from basic structure to a professional template.*
 * [Developer Operations (dev-ops)](#developer-operations) — *Workflows, environment setup, and quality gate usage.*
 * [Packaging & Distribution](#packaging--distribution) — *Build, validate, and publish package artifacts via a dedicated lane.*
+* [Operations Hardening Gates](#operations-hardening-gates) — *Perf, leak, recovery, and observability checks as an explicit readiness lane.*
+* [Version Evolution Guardrail](#version-evolution-guardrail) — *Facade-only version chaining plus compatibility hard-rule enforcement.*
+* [Guardrails Index](#guardrails-index) — *Central list of all implemented project guardrails.*
 
 ---
 
@@ -58,6 +61,21 @@ Link: [Releasing](../RELEASING.md)
 Dependency security scanning, SBOM generation, provenance attestations, and Sigstore artifact-signing controls.
 
 Link: [Supply-chain & operations](supply-chain-operations.md)
+
+### Operations hardening gates
+Deterministic checks for runtime-facing quality: performance budgets, leak detection, recovery behavior, and structured observability signals.
+
+Link: [Operations hardening gates](operations-hardening-gates.md)
+
+### Version evolution guardrail
+Dedicated explanation of the agentic coding pain point this guard addresses, and how import-boundary + compatibility hard-rule enforcement prevents cross-version drift.
+
+Link: [Version evolution guardrail](guardrails/version-evolution-guardrail.md)
+
+### Guardrails index
+Overview of all guardrails currently implemented and pointers to their docs.
+
+Link: [Guardrails index](guardrails/README.md)
 
 ### Template repository
 Documentation to make this repo reusable via *Use this template* on Github.

@@ -209,6 +209,30 @@ SIGSTORE_CERT_IDENTITY="https://github.com/<org>/<repo>/.github/workflows/publis
 
 ---
 
+## `ops_gate.sh`
+
+Runs operational hardening gates:
+- performance budget check
+- memory growth/leak check
+- recovery + structured observability check
+
+Backed by:
+- `tools/run_ops_gates.py`
+
+### Usage
+
+```bash
+./scripts/ops_gate.sh
+```
+
+You can pass threshold overrides through CLI flags:
+
+```bash
+./scripts/ops_gate.sh --perf-max-ms 0.03 --leak-max-growth-kb 96
+```
+
+---
+
 ## Philosophy
 
 These scripts are not meant to hide complexity.

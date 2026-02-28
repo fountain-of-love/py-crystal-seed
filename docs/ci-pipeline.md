@@ -61,9 +61,11 @@ Packaging is handled in dedicated workflows so it does not interfere with defaul
 - `publish-testpypi.yml`: publish to TestPyPI (manual)
 - `publish-pypi.yml`: publish to PyPI (manual/release)
 - both publish workflows enforce a two-job trust boundary (`build-sign` -> `verify-publish`) with Sigstore verification and fail on missing signature bundles
+- `operations-gates.yml`: operational readiness lane (perf + leak + recovery + observability gates)
 
 GitLab release-gate lane:
 - `.gitlab-ci.yml`:
+  - `ops_gates` (`quality` stage): operational readiness lane for merge requests/branches
   - `release_build_sign` (tag-only): build + twine check + Sigstore signing
   - `release_verify_gate` (tag-only): verifies signed artifacts from prior job before publish
   - `release_publish_testpypi` / `release_publish_pypi` (manual): blocked until verify gate passes
