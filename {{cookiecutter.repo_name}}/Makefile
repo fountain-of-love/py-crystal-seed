@@ -1,7 +1,7 @@
 VENV := venv
 PY := $(VENV)/bin/python
 
-.PHONY: setup check smoke docs-drift waivers-check release-policy release-ready ops-gate hardening-check supplychain-scan sbom verify-signatures supplychain-check test lint format typecheck package-build package-check package-install package-publish-test package-publish hooks hooks-refresh clean help
+.PHONY: setup check smoke docs-drift waivers-check release-policy release-ready ops-gate hardening-check supplychain-scan sbom verify-signatures supplychain-check adr-check package-boundaries-check governance-check test lint format typecheck package-build package-check package-install package-publish-test package-publish hooks hooks-refresh clean help
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?##' Makefile | awk 'BEGIN {FS = ":.*?## "}; {printf "%-15s %s\n", $$1, $$2}'
@@ -25,6 +25,8 @@ setup: ## Create environment, install dev deps, install hooks
 	@chmod +x tools/check_docs_drift.py || true
 	@chmod +x tools/check_waivers.py || true
 	@chmod +x tools/check_release_policy.py || true
+	@chmod +x tools/check_package_boundaries.py || true
+	@chmod +x tools/check_adr_quality.py || true
 	@./scripts/bootstrap.sh
 	@$(PY) -m pip install -e '.[dev]'
 	@$(PY) -m pre_commit install
@@ -37,17 +39,30 @@ check: ## Run smoke matrix + pre-commit hooks
 test: ## Run tests only
 	@./scripts/test.sh
 
-smoke: ## Run smoke matrix (lint + typecheck + tests + import-boundary guard)
+smoke: ## Run smoke matrix (lint + typecheck + tests + architecture/governance guards)
 	@./tools/smoke_matrix.sh
 
 docs-drift: ## Check required docs and change-aware docs drift policy
 	@$(PY) ./tools/check_docs_drift.py
+
+package-boundaries-check: ## Validate configured package import boundaries
+	@$(PY) ./tools/check_package_boundaries.py
+
+adr-check: ## Validate ADR quality and template conformance
+	@$(PY) ./tools/check_adr_quality.py
 
 waivers-check: ## Validate waiver registry format and expiry rules
 	@$(PY) ./tools/check_waivers.py
 
 release-policy: ## Validate SemVer/tag policy and changelog coupling
 	@$(PY) ./tools/check_release_policy.py
+
+governance-check: ## Run governance/auditability guardrail checks
+	@$(MAKE) docs-drift
+	@$(MAKE) waivers-check
+	@$(MAKE) release-policy
+	@$(MAKE) package-boundaries-check
+	@$(MAKE) adr-check
 
 release-ready: ## Run release readiness gate (quality + package build/check)
 	@$(MAKE) check

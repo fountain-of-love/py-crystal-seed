@@ -13,4 +13,10 @@ echo "[smoke] Running tests"
 echo "[smoke] Running version evolution guardrail"
 ./venv/bin/python ./tools/check_version_import_boundaries.py
 
+echo "[smoke] Running package boundary guardrail"
+./venv/bin/python ./tools/check_package_boundaries.py
+
+echo "[smoke] Running ADR quality guardrail"
+./venv/bin/python ./tools/check_adr_quality.py
+
 echo "[smoke] Smoke matrix passed"

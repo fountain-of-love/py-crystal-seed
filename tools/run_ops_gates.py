@@ -2,150 +2,70 @@
 from __future__ import annotations
 
 import argparse
-import gc
-import json
+import importlib
 import sys
-import time
-import tracemalloc
-import uuid
-from dataclasses import dataclass
-from datetime import datetime, timezone
+from collections.abc import Callable
+from pathlib import Path
+from typing import cast
 
-from py_crystal_seed.main import greet
-
-
-@dataclass
-class GateResult:
-    gate: str
-    passed: bool
-    details: dict[str, object]
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SRC_ROOT = REPO_ROOT / "src"
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 
-def _perf_gate(iterations: int, max_per_call_ms: float) -> GateResult:
-    started = time.perf_counter()
-    for _ in range(iterations):
-        greet()
-    elapsed_ms = (time.perf_counter() - started) * 1000
-    per_call_ms = elapsed_ms / iterations
-    passed = per_call_ms <= max_per_call_ms
-    return GateResult(
-        gate="performance",
-        passed=passed,
-        details={
-            "iterations": iterations,
-            "elapsed_ms": round(elapsed_ms, 3),
-            "per_call_ms": round(per_call_ms, 6),
-            "max_per_call_ms": max_per_call_ms,
-        },
-    )
+def _load_module() -> object:
+    module_name = "guardrails_ops.ops"
+    try:
+        return importlib.import_module(module_name)
+    except ModuleNotFoundError:
+        local_src = REPO_ROOT / "libs" / "guardrails-ops" / "src"
+        if local_src.exists() and str(local_src) not in sys.path:
+            sys.path.insert(0, str(local_src))
+        return importlib.import_module(module_name)
 
 
-def _leak_gate(iterations: int, max_growth_kb: int) -> GateResult:
-    gc.collect()
-    tracemalloc.start()
-    before_current, _ = tracemalloc.get_traced_memory()
-
-    for _ in range(iterations):
-        greet()
-
-    gc.collect()
-    after_current, peak = tracemalloc.get_traced_memory()
-    tracemalloc.stop()
-
-    growth_bytes = max(0, after_current - before_current)
-    growth_kb = growth_bytes / 1024
-    peak_kb = peak / 1024
-    passed = growth_kb <= max_growth_kb
-    return GateResult(
-        gate="memory-leak",
-        passed=passed,
-        details={
-            "iterations": iterations,
-            "growth_kb": round(growth_kb, 3),
-            "peak_kb": round(peak_kb, 3),
-            "max_growth_kb": max_growth_kb,
-        },
-    )
+module = _load_module()
 
 
-def _utc_now() -> str:
-    return datetime.now(tz=timezone.utc).isoformat()
-
-
-def _recovery_gate(max_retries: int) -> GateResult:
-    correlation_id = str(uuid.uuid4())
-    events: list[dict[str, str]] = []
-    attempts = {"count": 0}
-
-    def emit(event: str, level: str = "INFO") -> None:
-        events.append(
-            {
-                "timestamp": _utc_now(),
-                "event": event,
-                "level": level,
-                "correlation_id": correlation_id,
-            }
-        )
-
-    def flaky_operation() -> str:
-        attempts["count"] += 1
-        if attempts["count"] < 3:
-            raise RuntimeError("transient failure")
-        return greet()
-
-    emit("operation_start")
-    outcome = "failed"
-    for _attempt in range(1, max_retries + 1):
-        try:
-            result = flaky_operation()
-            outcome = "recovered"
-            emit("operation_success")
-            break
-        except RuntimeError:
-            emit("operation_retry", level="WARNING")
-    else:
-        result = ""
-        emit("operation_failure", level="ERROR")
-
-    has_consistent_correlation = all(
-        event.get("correlation_id") == correlation_id for event in events
-    )
-    has_required_events = {"operation_start", "operation_retry", "operation_success"}.issubset(
-        {event["event"] for event in events}
-    )
-    passed = (
-        outcome == "recovered"
-        and result == greet()
-        and has_consistent_correlation
-        and has_required_events
-    )
-    return GateResult(
-        gate="recovery-observability",
-        passed=passed,
-        details={
-            "attempts": attempts["count"],
-            "max_retries": max_retries,
-            "outcome": outcome,
-            "events_emitted": len(events),
-            "retry_events": sum(1 for event in events if event["event"] == "operation_retry"),
-            "correlation_id_consistent": has_consistent_correlation,
-            "required_events_present": has_required_events,
-        },
-    )
-
-
-def _run_all(
-    perf_iterations: int,
-    perf_max_ms: float,
-    leak_iterations: int,
-    leak_max_growth_kb: int,
-    recovery_max_retries: int,
-) -> list[GateResult]:
-    return [
-        _perf_gate(iterations=perf_iterations, max_per_call_ms=perf_max_ms),
-        _leak_gate(iterations=leak_iterations, max_growth_kb=leak_max_growth_kb),
-        _recovery_gate(max_retries=recovery_max_retries),
+def _discover_root_package(src_root: Path) -> str:
+    packages = [
+        child.name
+        for child in src_root.iterdir()
+        if child.is_dir()
+        and (child / "__init__.py").exists()
+        and not child.name.startswith("guardrails_")
     ]
+    if len(packages) == 1:
+        return packages[0]
+    return ""
+
+
+def _load_greet() -> Callable[[], str]:
+    root_package = _discover_root_package(SRC_ROOT)
+    if not root_package:
+        raise RuntimeError("unable to resolve root package for ops gate")
+    app_module = importlib.import_module(f"{root_package}.main")
+    greet = getattr(app_module, "greet", None)
+    if not callable(greet):
+        raise RuntimeError(f"{root_package}.main.greet is missing or not callable")
+    return greet
+
+
+def _run_local_hook(argv: list[str]) -> int:
+    try:
+        hooks = importlib.import_module("project_governance.hooks")
+    except ModuleNotFoundError as exc:
+        if exc.name in {"project_governance", "project_governance.hooks"}:
+            return 0
+        raise
+    hook = getattr(hooks, "run_ops_gates", None)
+    if not callable(hook):
+        return 0
+    result = cast(Callable[[Path, list[str]], int | None], hook)(REPO_ROOT, argv)
+    return 0 if result is None else int(result)
 
 
 def _parse_args(argv: list[str]) -> argparse.Namespace:
@@ -160,32 +80,24 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def main(argv: list[str] | None = None) -> int:
-    args = _parse_args(argv or sys.argv[1:])
-    results = _run_all(
-        perf_iterations=args.perf_iterations,
-        perf_max_ms=args.perf_max_ms,
-        leak_iterations=args.leak_iterations,
-        leak_max_growth_kb=args.leak_max_growth_kb,
-        recovery_max_retries=args.recovery_max_retries,
-    )
-
-    summary = {
-        "status": "passed" if all(result.passed for result in results) else "failed",
-        "gates": [
-            {"gate": result.gate, "passed": result.passed, "details": result.details}
-            for result in results
-        ],
-    }
-    print(json.dumps(summary, indent=2, sort_keys=True))
-
-    if summary["status"] != "passed":
-        print("[ops-gate] Operational hardening checks failed.")
-        return 1
-
-    print("[ops-gate] Operational hardening checks passed.")
-    return 0
-
-
 if __name__ == "__main__":
-    sys.exit(main())
+    argv = sys.argv[1:]
+    args = _parse_args(argv)
+    try:
+        greet_fn = _load_greet()
+    except RuntimeError as exc:
+        print(f"[ops-gate] {exc}")
+        sys.exit(1)
+    central_rc = int(
+        module.run_ops_gates(
+            greet_fn=greet_fn,
+            perf_iterations=args.perf_iterations,
+            perf_max_ms=args.perf_max_ms,
+            leak_iterations=args.leak_iterations,
+            leak_max_growth_kb=args.leak_max_growth_kb,
+            recovery_max_retries=args.recovery_max_retries,
+        )
+    )
+    if central_rc != 0:
+        raise SystemExit(central_rc)
+    raise SystemExit(_run_local_hook(argv))

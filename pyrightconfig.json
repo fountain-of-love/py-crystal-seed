@@ -1,7 +1,18 @@
 {
   "include": [
     "src",
+    "libs/guardrails-governance/src",
+    "libs/guardrails-release/src",
+    "libs/guardrails-architecture/src",
+    "libs/guardrails-ops/src",
     "tests"
+  ],
+  "extraPaths": [
+    "src",
+    "libs/guardrails-governance/src",
+    "libs/guardrails-release/src",
+    "libs/guardrails-architecture/src",
+    "libs/guardrails-ops/src"
   ],
   "pythonVersion": "3.10",
   "typeCheckingMode": "strict"

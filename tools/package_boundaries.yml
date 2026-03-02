@@ -1,0 +1,12 @@
+# Configure strict package boundary rules for your project.
+#
+# Example:
+# rules:
+#   - package: runtime_pkg
+#     forbidden_prefixes:
+#       - research_pkg
+#   - package: research_pkg
+#     forbidden_prefixes:
+#       - runtime_pkg
+
+rules: []

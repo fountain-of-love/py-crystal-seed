@@ -14,6 +14,19 @@ echo "Upgrading build tooling..."
 echo "Installing project (editable)..."
 ./$VENV/bin/python -m pip install -e .
 
+if [ -d "./libs" ]; then
+  echo "Installing local guardrail libraries (editable)..."
+  for lib in \
+    ./libs/guardrails-governance \
+    ./libs/guardrails-release \
+    ./libs/guardrails-architecture \
+    ./libs/guardrails-ops; do
+    if [ -f "$lib/pyproject.toml" ]; then
+      ./$VENV/bin/python -m pip install -e "$lib"
+    fi
+  done
+fi
+
 echo "Installing dev dependencies..."
 ./$VENV/bin/python -m pip install -e '.[dev]'
 

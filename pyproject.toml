@@ -26,6 +26,10 @@ Issues = "https://github.com/your-org/py-crystal-seed/issues"
 
 [project.optional-dependencies]
 dev = [
+    "guardrails-governance>=0.1.0",
+    "guardrails-release>=0.1.0",
+    "guardrails-architecture>=0.1.0",
+    "guardrails-ops>=0.1.0",
     "cookiecutter",
     "pytest",
     "pre-commit",

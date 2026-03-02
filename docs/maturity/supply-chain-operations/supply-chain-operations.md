@@ -46,4 +46,4 @@ SBOM output:
 - Release/security posture still gets enforced in dedicated pipelines.
 
 For detailed runtime-facing gate behavior, see:
-- `docs/operations-hardening-gates.md`
+- `docs/maturity/supply-chain-operations/operations-hardening-gates.md`

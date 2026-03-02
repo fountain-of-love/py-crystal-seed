@@ -216,6 +216,21 @@ This template separates gates by intent:
 
 This keeps day-to-day iteration fast while still making runtime reliability and release trust explicit and testable.
 
+### Maturity model (Java-style analog target)
+
+Documentation and guardrails are organized by four maturity pillars:
+1. Build/test/type/lint discipline: ~95%
+2. Packaging/distribution discipline: ~94%
+3. Governance/auditability discipline: ~93%
+4. Supply-chain/operations hardening: ~80%
+
+See unified docs index:
+- **[docs/README.md](docs/README.md)**
+Live dashboard:
+- **[docs/maturity/status-dashboard.md](docs/maturity/status-dashboard.md)**
+Reusable adoption mechanism:
+- **[docs/maturity/maturity-mechanism.md](docs/maturity/maturity-mechanism.md)**
+
 ---
 
 ## Development & Tooling
@@ -235,15 +250,36 @@ See the full development guide in **[dev-ops/README.md](dev-ops/README.md)**.
 For Codex/maintainer workflow and template contribution rules, see
 **[DEVELOPER_README.md](DEVELOPER_README.md)**.
 For packaging and publishing workflow details, see
-**[docs/packaging-distribution.md](docs/packaging-distribution.md)**.
+**[docs/maturity/packaging-distribution/packaging-distribution.md](docs/maturity/packaging-distribution/packaging-distribution.md)**.
 For supply-chain and operations hardening controls, see
-**[docs/supply-chain-operations.md](docs/supply-chain-operations.md)**.
+**[docs/maturity/supply-chain-operations/supply-chain-operations.md](docs/maturity/supply-chain-operations/supply-chain-operations.md)**.
 For detailed perf/leak/recovery/observability gate behavior, see
-**[docs/operations-hardening-gates.md](docs/operations-hardening-gates.md)**.
+**[docs/maturity/supply-chain-operations/operations-hardening-gates.md](docs/maturity/supply-chain-operations/operations-hardening-gates.md)**.
 For version-by-version evolution safety and agentic coding drift prevention, see
-**[docs/guardrails/version-evolution-guardrail.md](docs/guardrails/version-evolution-guardrail.md)**.
+**[docs/maturity/governance-auditability/version-evolution-guardrail.md](docs/maturity/governance-auditability/version-evolution-guardrail.md)**.
+For package boundary and ADR governance guardrails, see
+**[docs/maturity/governance-auditability/package-boundary-guardrail.md](docs/maturity/governance-auditability/package-boundary-guardrail.md)**
+and
+**[docs/maturity/governance-auditability/adr-quality-guardrail.md](docs/maturity/governance-auditability/adr-quality-guardrail.md)**.
+Use the default ADR template at
+**[docs/adr/ADR-0000-template.md](docs/adr/ADR-0000-template.md)**.
+For the lean-template adoption strategy via shared guardrail libraries, see
+**[docs/maturity/governance-auditability/guardrail-library-externalization.md](docs/maturity/governance-auditability/guardrail-library-externalization.md)**.
+For the central-plus-local governance extension model, see
+**[docs/maturity/governance-auditability/federated-governance-hooks.md](docs/maturity/governance-auditability/federated-governance-hooks.md)**.
 For the full guardrail map, see
-**[docs/guardrails/README.md](docs/guardrails/README.md)**.
+**[docs/maturity/governance-auditability/guardrails-index.md](docs/maturity/governance-auditability/guardrails-index.md)**.
+Core guardrail docs:
+- **[Operations hardening guardrail](docs/maturity/supply-chain-operations/operations-hardening-guardrail.md)**
+- **[Supply-chain and release trust guardrail](docs/maturity/supply-chain-operations/supply-chain-release-trust-guardrail.md)**
+- **[Release policy guardrail](docs/maturity/governance-auditability/release-policy-guardrail.md)**
+- **[Documentation drift guardrail](docs/maturity/governance-auditability/docs-drift-guardrail.md)**
+- **[Waiver governance guardrail](docs/maturity/governance-auditability/waiver-governance-guardrail.md)**
+- **[Package boundary guardrail](docs/maturity/governance-auditability/package-boundary-guardrail.md)**
+- **[ADR quality guardrail](docs/maturity/governance-auditability/adr-quality-guardrail.md)**
+- **[Guardrail library externalization](docs/maturity/governance-auditability/guardrail-library-externalization.md)**
+- **[Federated governance hooks](docs/maturity/governance-auditability/federated-governance-hooks.md)**
+- **[Maturity mechanism guardrail](docs/maturity/governance-auditability/maturity-mechanism-guardrail.md)**
 For release promotion and rollback steps, see
 **[RELEASING.md](RELEASING.md)**.
 
@@ -254,11 +290,10 @@ For release promotion and rollback steps, see
 This template intentionally provides a strong foundation without imposing heavy tooling.
 Depending on your project’s maturity, you may consider extending it with:
 
-- static analysis (ruff, pyright)
-- richer typing practices
-- automated versioning and release workflows
-- extended CI (linting, type checks, coverage)
-- documentation tooling (MkDocs, Sphinx)
-- packaging and publishing practices
+- domain-specific package boundary rules in `tools/package_boundaries.yml`
+- ADR workflows (decision templates + review automation) for architecture-heavy teams
+- extraction of local guardrail internals into shared versioned libraries
+- stronger runtime SLI gates and trend dashboards on top of `make ops-gate`
+- automated release-note/changelog generation with approval controls
 
 The structure of this template is designed to support these additions without requiring restructuring.
