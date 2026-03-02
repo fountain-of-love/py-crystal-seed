@@ -10,4 +10,6 @@ if [ ! -x "$PY" ]; then
   exit 1
 fi
 
+./scripts/require_python_modules.sh "$PY" guardrails_ops
+
 exec "$PY" ./tools/run_ops_gates.py "$@"

@@ -3,28 +3,40 @@ set -e
 
 VENV="venv"
 PYTHON="python3.12"
+FORCE_RECREATE="${FORCE_RECREATE:-0}"
+SKIP_PIP_UPGRADE="${SKIP_PIP_UPGRADE:-0}"
 
-echo "Creating virtual environment..."
-rm -rf "$VENV"
-$PYTHON -m venv "$VENV"
+if [ "$FORCE_RECREATE" = "1" ] && [ -d "$VENV" ]; then
+  echo "Recreating virtual environment..."
+  rm -rf "$VENV"
+fi
 
-echo "Upgrading build tooling..."
-./$VENV/bin/python -m pip install --upgrade pip setuptools wheel
+if [ ! -d "$VENV" ]; then
+  echo "Creating virtual environment..."
+  $PYTHON -m venv "$VENV"
+else
+  echo "Reusing existing virtual environment..."
+fi
+
+if [ "$SKIP_PIP_UPGRADE" = "1" ]; then
+  echo "Skipping build tooling upgrade (SKIP_PIP_UPGRADE=1)."
+else
+  echo "Upgrading build tooling..."
+  if ! ./$VENV/bin/python -m pip install --upgrade pip setuptools wheel; then
+    echo "Build tooling upgrade failed; continuing with existing toolchain."
+  fi
+fi
 
 echo "Installing project (editable)..."
 ./$VENV/bin/python -m pip install -e .
 
 if [ -d "./libs" ]; then
   echo "Installing local guardrail libraries (editable)..."
-  for lib in \
-    ./libs/guardrails-governance \
-    ./libs/guardrails-release \
-    ./libs/guardrails-architecture \
-    ./libs/guardrails-ops; do
-    if [ -f "$lib/pyproject.toml" ]; then
-      ./$VENV/bin/python -m pip install --no-build-isolation -e "$lib"
-    fi
-  done
+  ./$VENV/bin/python -m pip install --no-build-isolation \
+    -e ./libs/guardrails-architecture \
+    -e ./libs/guardrails-release \
+    -e ./libs/guardrails-ops \
+    -e ./libs/guardrails-governance
 fi
 
 echo "Installing dev dependencies..."

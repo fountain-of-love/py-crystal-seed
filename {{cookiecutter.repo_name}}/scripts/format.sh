@@ -10,5 +10,7 @@ if [ ! -x "$PY" ]; then
   exit 1
 fi
 
+./scripts/require_python_modules.sh "$PY" ruff
+
 "$PY" -m ruff check --fix src tests scripts tools
 "$PY" -m ruff format src tests scripts tools

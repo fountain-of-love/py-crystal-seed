@@ -7,6 +7,8 @@ from typing import Any, cast
 
 import yaml
 
+from .result import GuardResult
+
 REQUIRED_KEYS = {
     "id",
     "control",
@@ -79,12 +81,15 @@ def _write_summary(active: int, expiring_soon: int) -> None:
     )
 
 
-def run_waiver_check(*, waiver_file: Path, today: dt.date | None = None) -> int:
+def check_waivers(*, waiver_file: Path, today: dt.date | None = None) -> GuardResult:
     try:
         waivers = _load_waivers(waiver_file)
     except RuntimeError as exc:
-        print(f"[waivers] {exc}")
-        return 1
+        return GuardResult(
+            guard="waivers",
+            status="fail",
+            violations=[{"message": str(exc)}],
+        )
 
     current_day = today or dt.date.today()
     violations: list[str] = []
@@ -106,14 +111,41 @@ def run_waiver_check(*, waiver_file: Path, today: dt.date | None = None) -> int:
             expiring_soon += 1
 
     if violations:
-        print("[waivers] Violations:")
-        for item in violations:
-            print(f"  - {item}")
-        return 1
+        return GuardResult(
+            guard="waivers",
+            status="fail",
+            violations=[{"message": item} for item in violations],
+            metrics={"active_waivers": len(waivers), "expiring_soon": expiring_soon},
+        )
 
-    print(f"[waivers] OK (active waivers: {len(waivers)}, expiring soon: {expiring_soon})")
-    _write_summary(active=len(waivers), expiring_soon=expiring_soon)
-    return 0
+    return GuardResult(
+        guard="waivers",
+        status="pass",
+        metrics={"active_waivers": len(waivers), "expiring_soon": expiring_soon},
+    )
+
+
+def format_waiver_result(result: GuardResult) -> str:
+    if result.status == "fail":
+        lines = ["[waivers] Violations:"]
+        lines.extend(f"  - {item['message']}" for item in result.violations)
+        return "\n".join(lines)
+    return (
+        "[waivers] OK "
+        f"(active waivers: {result.metrics.get('active_waivers', 0)}, "
+        f"expiring soon: {result.metrics.get('expiring_soon', 0)})"
+    )
+
+
+def run_waiver_check(*, waiver_file: Path, today: dt.date | None = None) -> int:
+    result = check_waivers(waiver_file=waiver_file, today=today)
+    print(format_waiver_result(result))
+    if result.status == "pass":
+        _write_summary(
+            active=int(result.metrics.get("active_waivers", 0)),
+            expiring_soon=int(result.metrics.get("expiring_soon", 0)),
+        )
+    return result.exit_code()
 
 
 def main() -> int:

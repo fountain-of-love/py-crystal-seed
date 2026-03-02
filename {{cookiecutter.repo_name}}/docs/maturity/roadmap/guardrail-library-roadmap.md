@@ -15,6 +15,13 @@ The template keeps only:
 
 Shared libraries own the policy engines.
 
+Target public surface:
+- Python API
+- CLI entrypoints
+- packaged resources via `importlib.resources`
+- repo-local manifests
+- additive local hooks
+
 ## Planned Library Split
 
 ### 1) `guardrails-architecture`
@@ -25,10 +32,9 @@ Owns:
 Status:
 - externalized as dependency `guardrails-architecture`
 - seed-repo local dev copy: `libs/guardrails-architecture/`
-- `tools/check_version_import_boundaries.py` and `tools/check_package_boundaries.py` now target this package boundary
+- `tools/check_version_import_boundaries.py`, `tools/check_package_boundaries.py`, and `tools/check_refactoring_guard.py` now target this package boundary
 
 Planned later:
-- refactoring guard
 - directional dependency rules
 - composition-only wiring rules
 - ports-over-concretes checks
@@ -82,11 +88,16 @@ Planned later:
 ## Gap To Close Relative To `bubblegum`
 
 Current major gaps:
-1. refactoring/architecture guard depth
-2. coverage governance (baseline, parity, thresholds)
-3. maturity evidence enforcement per changed module
-4. guard telemetry and weekly reporting
-5. optional domain contract guards (for example OpenAPI)
+1. coverage governance (baseline, parity, thresholds)
+2. maturity evidence enforcement per changed module
+3. guard telemetry and weekly reporting
+4. optional domain contract guards (for example OpenAPI)
+
+Packaging and consumption design references:
+- `docs/maturity/governance-auditability/guardrail-packaging-model.md`
+- `docs/maturity/governance-auditability/guardrail-manifest-contract.md`
+- `docs/maturity/governance-auditability/downstream-guardrail-consumption.md`
+- `docs/maturity/governance-auditability/commit-lockdown-strategy.md`
 
 ## Roadmap Phases
 
@@ -117,7 +128,6 @@ Exit criteria:
 
 ### Phase 3: Reach `bubblegum` Governance Parity
 Add:
-- refactoring guard
 - coverage governance
 - maturity governance log
 - guard telemetry/reporting
@@ -142,11 +152,10 @@ These remain opt-in so the template stays lean.
 3. extract `guardrails-release`
 4. extract `guardrails-architecture`
 5. extract `guardrails-ops`
-6. add refactoring guard
-7. add coverage governance
-8. add maturity evidence guard
-9. add guard telemetry and reporting
-10. add optional domain guard packs
+6. add coverage governance
+7. add maturity evidence guard
+8. add guard telemetry and reporting
+9. add optional domain guard packs
 
 ## Review Rule
 

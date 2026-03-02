@@ -21,23 +21,21 @@ The local facade remains stable while the backend implementation can evolve via 
 ## Target Architecture
 
 - `tools/check_*.py` becomes thin adapters.
-- Adapters call shared library APIs/CLIs once available.
+- Adapters call shared library APIs/CLIs.
 - Repo-specific policy remains in local config files (`waivers.yml`, boundary configs, etc.).
 - Project-specific extensions live in `project_governance/hooks.py` and run only after the central library check passes.
+- Shared libraries are published as Python packages with stable CLI entrypoints and packaged resources.
 
 ## Migration Phases
 
 1. Implemented now: local scripts are thin adapters with stable command names.
-2. Implemented now: policy logic is carved into reusable in-repo modules under `src/*/guardrails`.
-3. Started now: the governance set is split into a separate package boundary at `src/guardrails_governance/`.
-4. Started now: the release set is split into a separate package boundary at `src/guardrails_release/`.
-5. Started now: the architecture set is split into a separate package boundary at `src/guardrails_architecture/`.
-6. Started now: the operations set is split into a separate package boundary at `src/guardrails_ops/`.
-7. Implemented now: these sets are consumed as external-style dependencies (`guardrails-*`) and kept as local dev copies under `libs/*` in this seed repo.
-8. Next: publish/version these libraries independently and consume released versions in generated projects.
-9. Later: keep adapters stable while switching backend implementation to released external libs only.
-10. Implemented now: local projects can federate extra policy through additive `project_governance` hooks.
-11. Ongoing: projects adopt improvements through library version upgrades.
+2. Implemented earlier: policy logic was first carved into reusable in-repo modules under `src/*/guardrails`.
+3. Implemented now: governance, release, architecture, and ops are split into shared package boundaries under `libs/*`.
+4. Implemented now: these sets are consumed as external-style dependencies (`guardrails-*`) in this seed repo.
+5. Next: publish/version these libraries independently and consume released versions in generated projects.
+6. Later: keep adapters stable while switching backend implementation to released external libs only.
+7. Implemented now: local projects can federate extra policy through additive `project_governance` hooks.
+8. Ongoing: projects adopt improvements through library version upgrades.
 
 ## Non-goals
 
@@ -49,6 +47,20 @@ The local facade remains stable while the backend implementation can evolve via 
 - leaner generated projects
 - centralized governance evolution
 - lower adoption friction for Java-analog maturity controls across many repositories
+
+## Canonical Public Surface
+
+The public contract should converge on:
+- Python package dependency
+- Python API for embedding and tests
+- CLI entrypoints for pre-commit and CI
+- repo-local manifests for project policy
+- additive local hooks for project-specific tightening
+
+See also:
+- `guardrail-packaging-model.md`
+- `guardrail-manifest-contract.md`
+- `downstream-guardrail-consumption.md`
 
 ## Template Decluttering Rule
 

@@ -4,6 +4,8 @@ import os
 import re
 from pathlib import Path
 
+from .result import GuardResult
+
 RE_FILENAME = re.compile(r"^ADR-(\d{4})-[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
 RE_TITLE = re.compile(r"^# ADR-\d{4}: .+")
 RE_STATUS = re.compile(r"^- Status: (Proposed|Accepted|Superseded)$")
@@ -56,35 +58,62 @@ def _validate_file(path: Path) -> list[str]:
     return errors
 
 
-def run_adr_quality_check(*, adr_dir: Path) -> int:
+def check_adr_quality(*, adr_dir: Path) -> GuardResult:
     if not adr_dir.exists():
-        print("[adr-check] docs/adr not found; skipping")
-        return 0
+        return GuardResult(
+            guard="adr_quality",
+            status="pass",
+            metrics={"validated_files": 0, "skipped": True},
+            advice=["docs/adr not found; skipping"],
+        )
 
     adrs = sorted(p for p in adr_dir.glob("ADR-*.md") if p.is_file())
     if not adrs:
-        print("[adr-check] no ADR files found; skipping")
-        return 0
+        return GuardResult(
+            guard="adr_quality",
+            status="pass",
+            metrics={"validated_files": 0, "skipped": True},
+            advice=["no ADR files found; skipping"],
+        )
 
     all_errors: list[str] = []
     for adr in adrs:
         all_errors.extend(_validate_file(adr))
 
     if all_errors:
-        print("[adr-check] validation failed:")
-        for err in all_errors:
-            print(f"  - {err}")
-        return 1
+        return GuardResult(
+            guard="adr_quality",
+            status="fail",
+            violations=[{"message": err} for err in all_errors],
+            metrics={"validated_files": len(adrs)},
+        )
 
-    print(f"[adr-check] OK: validated {len(adrs)} ADR file(s)")
-    return 0
+    return GuardResult(
+        guard="adr_quality",
+        status="pass",
+        metrics={"validated_files": len(adrs)},
+    )
+
+
+def format_adr_quality_result(result: GuardResult) -> str:
+    if result.metrics.get("skipped"):
+        return f"[adr-check] {result.advice[0]}"
+    if result.status == "fail":
+        lines = ["[adr-check] validation failed:"]
+        lines.extend(f"  - {item['message']}" for item in result.violations)
+        return "\n".join(lines)
+    return f"[adr-check] OK: validated {result.metrics.get('validated_files', 0)} ADR file(s)"
+
+
+def run_adr_quality_check(*, adr_dir: Path) -> int:
+    result = check_adr_quality(adr_dir=adr_dir)
+    print(format_adr_quality_result(result))
+    return result.exit_code()
 
 
 def main() -> int:
     repo_root_env = os.getenv("REPO_ROOT", "").strip()
-    repo_root = (
-        Path(repo_root_env).resolve() if repo_root_env else Path.cwd()
-    )
+    repo_root = Path(repo_root_env).resolve() if repo_root_env else Path.cwd()
 
     adr_dir_env = os.getenv("ADR_DIR", "").strip()
     adr_dir = Path(adr_dir_env).resolve() if adr_dir_env else repo_root / "docs" / "adr"

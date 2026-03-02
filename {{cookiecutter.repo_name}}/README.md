@@ -14,6 +14,7 @@ This project was generated from the **py-crystal-seed** template.
 - smoke matrix orchestration
 - version evolution guardrail
 - package boundary guardrail (config-driven)
+- refactoring guardrail
 - ADR quality guardrail
 - release policy, docs drift, and waiver governance checks
 - packaging and publishing pipeline (build/check/install/publish)
@@ -81,6 +82,15 @@ Result:
 - generated projects stay lean
 - maturity controls evolve centrally
 - adoption is mainly dependency version bumping
+
+Local commits use the repo-owned gate in `scripts/run_commit_gate.sh`.
+That keeps the local enforcement surface deterministic even when a generated `pre-commit` hook would otherwise point at a stale environment.
+
+Supporting docs:
+- `docs/maturity/governance-auditability/guardrail-packaging-model.md`
+- `docs/maturity/governance-auditability/commit-lockdown-strategy.md`
+- `docs/maturity/governance-auditability/guardrail-manifest-contract.md`
+- `docs/maturity/governance-auditability/downstream-guardrail-consumption.md`
 
 ## Documentation
 

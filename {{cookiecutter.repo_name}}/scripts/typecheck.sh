@@ -10,4 +10,6 @@ if [ ! -x "$PY" ]; then
   exit 1
 fi
 
+./scripts/require_python_modules.sh "$PY" pyright
+
 exec "$PY" -m pyright

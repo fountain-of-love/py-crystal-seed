@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import gc
-import json
 import time
 import tracemalloc
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
+
+from .result import GuardResult
 
 
 @dataclass
@@ -140,6 +141,50 @@ def _recovery_gate(*, greet_fn: Callable[[], str], max_retries: int) -> GateResu
     )
 
 
+def check_ops_gates(
+    *,
+    greet_fn: Callable[[], str],
+    perf_iterations: int,
+    perf_max_ms: float,
+    leak_iterations: int,
+    leak_max_growth_kb: int,
+    recovery_max_retries: int,
+) -> GuardResult:
+    results = [
+        _perf_gate(greet_fn=greet_fn, iterations=perf_iterations, max_per_call_ms=perf_max_ms),
+        _leak_gate(greet_fn=greet_fn, iterations=leak_iterations, max_growth_kb=leak_max_growth_kb),
+        _recovery_gate(greet_fn=greet_fn, max_retries=recovery_max_retries),
+    ]
+    status = "pass" if all(result.passed for result in results) else "fail"
+    violations = [
+        {"message": f"{result.gate} gate failed", "details": result.details}
+        for result in results
+        if not result.passed
+    ]
+    metrics = {
+        "gates": [
+            {"gate": result.gate, "passed": result.passed, "details": result.details}
+            for result in results
+        ]
+    }
+    return GuardResult(guard="ops_gates", status=status, violations=violations, metrics=metrics)
+
+
+def format_ops_result(result: GuardResult) -> str:
+    import json
+
+    summary = {
+        "status": "passed" if result.status == "pass" else "failed",
+        "gates": result.metrics.get("gates", []),
+    }
+    lines = [json.dumps(summary, indent=2, sort_keys=True)]
+    if result.status == "fail":
+        lines.append("[ops-gate] Operational hardening checks failed.")
+    else:
+        lines.append("[ops-gate] Operational hardening checks passed.")
+    return "\n".join(lines)
+
+
 def run_ops_gates(
     *,
     greet_fn: Callable[[], str],
@@ -149,24 +194,13 @@ def run_ops_gates(
     leak_max_growth_kb: int,
     recovery_max_retries: int,
 ) -> int:
-    results = [
-        _perf_gate(greet_fn=greet_fn, iterations=perf_iterations, max_per_call_ms=perf_max_ms),
-        _leak_gate(greet_fn=greet_fn, iterations=leak_iterations, max_growth_kb=leak_max_growth_kb),
-        _recovery_gate(greet_fn=greet_fn, max_retries=recovery_max_retries),
-    ]
-
-    summary = {
-        "status": "passed" if all(result.passed for result in results) else "failed",
-        "gates": [
-            {"gate": result.gate, "passed": result.passed, "details": result.details}
-            for result in results
-        ],
-    }
-    print(json.dumps(summary, indent=2, sort_keys=True))
-
-    if summary["status"] != "passed":
-        print("[ops-gate] Operational hardening checks failed.")
-        return 1
-
-    print("[ops-gate] Operational hardening checks passed.")
-    return 0
+    result = check_ops_gates(
+        greet_fn=greet_fn,
+        perf_iterations=perf_iterations,
+        perf_max_ms=perf_max_ms,
+        leak_iterations=leak_iterations,
+        leak_max_growth_kb=leak_max_growth_kb,
+        recovery_max_retries=recovery_max_retries,
+    )
+    print(format_ops_result(result))
+    return result.exit_code()

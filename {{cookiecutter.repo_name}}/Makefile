@@ -1,7 +1,7 @@
 VENV := venv
 PY := $(VENV)/bin/python
 
-.PHONY: setup check smoke docs-drift waivers-check release-policy release-ready ops-gate hardening-check supplychain-scan sbom verify-signatures supplychain-check adr-check package-boundaries-check governance-check test lint format typecheck package-build package-check package-install package-publish-test package-publish hooks hooks-refresh clean help
+.PHONY: setup check smoke docs-drift waivers-check release-policy release-ready ops-gate hardening-check supplychain-scan sbom verify-signatures supplychain-check adr-check package-boundaries-check refactoring-guard governance-check weekly-governance-report test lint format typecheck package-build package-check package-install package-publish-test package-publish hooks hooks-refresh clean help
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?##' Makefile | awk 'BEGIN {FS = ":.*?## "}; {printf "%-15s %s\n", $$1, $$2}'
@@ -21,20 +21,21 @@ setup: ## Create environment, install dev deps, install hooks
 	@chmod +x scripts/generate_sbom.sh || true
 	@chmod +x scripts/verify_signatures.sh || true
 	@chmod +x scripts/ops_gate.sh || true
+	@chmod +x scripts/run_commit_gate.sh || true
 	@chmod +x tools/smoke_matrix.sh || true
 	@chmod +x tools/check_docs_drift.py || true
 	@chmod +x tools/check_waivers.py || true
 	@chmod +x tools/check_release_policy.py || true
 	@chmod +x tools/check_package_boundaries.py || true
+	@chmod +x tools/check_refactoring_guard.py || true
 	@chmod +x tools/check_adr_quality.py || true
 	@./scripts/bootstrap.sh
 	@$(PY) -m pip install -e '.[dev]'
 	@$(PY) -m pre_commit install
 
 check: ## Run smoke matrix + pre-commit hooks
-	@$(MAKE) hooks-refresh
 	@$(MAKE) smoke
-	@$(PY) -m pre_commit run --all-files
+	@./scripts/run_commit_gate.sh
 
 test: ## Run tests only
 	@./scripts/test.sh
@@ -47,6 +48,9 @@ docs-drift: ## Check required docs and change-aware docs drift policy
 
 package-boundaries-check: ## Validate configured package import boundaries
 	@$(PY) ./tools/check_package_boundaries.py
+
+refactoring-guard: ## Run structural refactoring/architecture guard checks
+	@$(PY) ./tools/check_refactoring_guard.py
 
 adr-check: ## Validate ADR quality and template conformance
 	@$(PY) ./tools/check_adr_quality.py
@@ -62,7 +66,11 @@ governance-check: ## Run governance/auditability guardrail checks
 	@$(MAKE) waivers-check
 	@$(MAKE) release-policy
 	@$(MAKE) package-boundaries-check
+	@$(MAKE) refactoring-guard
 	@$(MAKE) adr-check
+
+weekly-governance-report: ## Generate weekly governance report artifacts
+	@./$(VENV)/bin/guardrails-report-weekly --repo-root . --output-dir artifacts/governance
 
 release-ready: ## Run release readiness gate (quality + package build/check)
 	@$(MAKE) check
@@ -115,12 +123,12 @@ package-publish: ## Publish dist artifacts to PyPI (needs PYPI_API_TOKEN)
 	@./scripts/publish_pypi.sh
 
 hooks: ## Install pre-commit hooks
-	@$(PY) -m pre_commit install
+	@mkdir -p .git/hooks
+	@cp dev-ops/git-hooks/pre-commit .git/hooks/pre-commit
+	@chmod +x .git/hooks/pre-commit
 
 hooks-refresh: ## Clean and reinstall hooks
-	@$(PY) -m pre_commit clean
-	@$(PY) -m pre_commit uninstall || true
-	@$(PY) -m pre_commit install
+	@$(MAKE) hooks
 
 clean: ## Remove virtualenv and caches
 	rm -rf $(VENV) .pytest_cache .ruff_cache .pyright dist build artifacts *.egg-info src/*.egg-info __pycache__

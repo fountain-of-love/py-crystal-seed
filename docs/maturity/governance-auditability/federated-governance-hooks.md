@@ -40,6 +40,7 @@ Starter functions are provided by the template as no-op hooks:
 - `check_adr_quality(repo_root)`
 - `check_docs_drift(repo_root)`
 - `check_package_boundaries(repo_root)`
+- `check_refactoring_guard(repo_root)`
 - `check_release_policy(repo_root)`
 - `check_version_evolution(repo_root, argv)`
 - `check_waivers(repo_root)`
@@ -71,6 +72,12 @@ When those versions are bumped:
 - central behavior tightens automatically
 - local hooks remain intact as a narrow extension seam
 - no command or CI interface changes should be required
+
+This assumes the stable public surface is:
+- package dependency
+- CLI entrypoint
+- repo-local manifest
+- additive local hook
 
 ## Design Rules
 
@@ -104,3 +111,8 @@ The template carries:
 
 The heavy governance logic evolves centrally in shared libraries.
 That is the mechanism that allows generated projects to mature by dependency bump instead of governance-script copy/paste.
+
+For the packaging and consumption model behind this, see:
+- `guardrail-packaging-model.md`
+- `guardrail-manifest-contract.md`
+- `downstream-guardrail-consumption.md`

@@ -7,6 +7,8 @@ from typing import Any, cast
 
 import yaml
 
+from .result import GuardResult
+
 DEFAULT_CONFIG = "tools/package_boundaries.yml"
 
 
@@ -63,21 +65,28 @@ def _load_rules(config_path: Path) -> list[tuple[str, tuple[str, ...]]]:
     return rules
 
 
-def run_package_boundary_check(
+def check_package_boundaries(
     *,
     repo_root: Path,
     config_path: Path,
-) -> int:
+) -> GuardResult:
     src_root = repo_root / "src"
     try:
         rules = _load_rules(config_path)
     except RuntimeError as exc:
-        print(f"[package-boundary] {exc}")
-        return 1
+        return GuardResult(
+            guard="package_boundaries",
+            status="fail",
+            violations=[{"message": str(exc)}],
+        )
 
     if not rules:
-        print("[package-boundary] No package boundary rules configured; skipping.")
-        return 0
+        return GuardResult(
+            guard="package_boundaries",
+            status="pass",
+            metrics={"rules": 0, "skipped": True},
+            advice=["No package boundary rules configured; skipping."],
+        )
 
     violations: list[str] = []
     for package, forbidden in rules:
@@ -107,20 +116,43 @@ def run_package_boundary_check(
                         )
 
     if violations:
-        print("[package-boundary] Violations found:")
-        for item in violations:
-            print(f"  - {item}")
-        return 1
+        return GuardResult(
+            guard="package_boundaries",
+            status="fail",
+            violations=[{"message": item} for item in violations],
+            metrics={"rules": len(rules)},
+        )
 
-    print("[package-boundary] OK: no forbidden cross-package imports detected.")
-    return 0
+    return GuardResult(
+        guard="package_boundaries",
+        status="pass",
+        metrics={"rules": len(rules)},
+    )
+
+
+def format_package_boundary_result(result: GuardResult) -> str:
+    if result.metrics.get("skipped"):
+        return f"[package-boundary] {result.advice[0]}"
+    if result.status == "fail":
+        lines = ["[package-boundary] Violations found:"]
+        lines.extend(f"  - {item['message']}" for item in result.violations)
+        return "\n".join(lines)
+    return "[package-boundary] OK: no forbidden cross-package imports detected."
+
+
+def run_package_boundary_check(
+    *,
+    repo_root: Path,
+    config_path: Path,
+) -> int:
+    result = check_package_boundaries(repo_root=repo_root, config_path=config_path)
+    print(format_package_boundary_result(result))
+    return result.exit_code()
 
 
 def main() -> int:
     repo_root_env = os.getenv("REPO_ROOT", "").strip()
-    repo_root = (
-        Path(repo_root_env).resolve() if repo_root_env else Path.cwd()
-    )
+    repo_root = Path(repo_root_env).resolve() if repo_root_env else Path.cwd()
 
     config_env = os.getenv("PACKAGE_BOUNDARIES_FILE", "").strip() or DEFAULT_CONFIG
     config_path = Path(config_env)

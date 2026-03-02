@@ -23,6 +23,10 @@ def check_package_boundaries(repo_root: Path) -> int | None:
     return 0
 
 
+def check_refactoring_guard(repo_root: Path) -> int | None:
+    return 0
+
+
 def check_release_policy(repo_root: Path) -> int | None:
     return 0
 

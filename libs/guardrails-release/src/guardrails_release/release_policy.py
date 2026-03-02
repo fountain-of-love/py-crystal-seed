@@ -5,6 +5,8 @@ import re
 import subprocess
 from pathlib import Path
 
+from .result import GuardResult
+
 VERSION_RE = re.compile(
     r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
     r"(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$"
@@ -92,6 +94,84 @@ def _check_release_trust_workflows(repo_root: Path) -> list[str]:
     return violations
 
 
+def check_release_policy(
+    *,
+    repo_root: Path,
+    release_tag: str,
+    diff_base: str,
+    diff_head: str,
+) -> GuardResult:
+    pyproject = repo_root / "pyproject.toml"
+    if not pyproject.exists():
+        return GuardResult(guard="release_policy", status="fail", violations=[{"message": "pyproject.toml missing"}])
+
+    try:
+        version = _read_project_version(pyproject)
+    except RuntimeError as exc:
+        return GuardResult(guard="release_policy", status="fail", violations=[{"message": str(exc)}])
+
+    violations: list[str] = []
+    if not VERSION_RE.match(version):
+        violations.append(f"Invalid SemVer version: {version}")
+
+    violations.extend(_check_release_trust_workflows(repo_root))
+
+    if release_tag:
+        tag_version = _normalized_tag(release_tag)
+        if tag_version != version:
+            violations.append(
+                "Tag/version mismatch: "
+                f"tag={release_tag!r} -> {tag_version!r}, pyproject={version!r}"
+            )
+
+    if diff_base:
+        try:
+            changed = _git_changed(diff_base=diff_base, diff_head=diff_head)
+        except RuntimeError as exc:
+            violations.append(f"Unable to evaluate changed files: {exc}")
+        else:
+            if "pyproject.toml" in changed:
+                previous_version = _version_at_rev(diff_base)
+                version_changed = previous_version is not None and previous_version != version
+                if version_changed and "CHANGELOG.md" not in changed:
+                    violations.append(
+                        "Version changed in pyproject.toml but CHANGELOG.md was not updated."
+                    )
+
+    if violations:
+        return GuardResult(
+            guard="release_policy",
+            status="fail",
+            violations=[{"message": item} for item in violations],
+            metrics={"version": version},
+        )
+
+    return GuardResult(guard="release_policy", status="pass", metrics={"version": version})
+
+
+def format_release_policy_result(result: GuardResult) -> str:
+    if result.status == "fail":
+        first = result.violations[0]["message"] if result.violations else ""
+        if first == "pyproject.toml missing":
+            return "[release-policy] pyproject.toml missing"
+        if str(first).startswith("Could not find [project].version"):
+            return f"[release-policy] {first}"
+        lines = ["[release-policy] Release trust workflow policy violations:"]
+        if not any("Workflow " in str(item["message"]) or "No release pipeline" in str(item["message"]) for item in result.violations):
+            lines = [f"[release-policy] {first}"]
+            if len(result.violations) == 1:
+                return lines[0]
+        lines = ["[release-policy] Release trust workflow policy violations:"] if any("Workflow " in str(item["message"]) or "No release pipeline" in str(item["message"]) for item in result.violations) else [f"[release-policy] {first}"]
+        if lines[0].startswith("[release-policy] Release trust"):
+            lines.extend(f"  - {item['message']}" for item in result.violations)
+            return "\n".join(lines)
+        if len(result.violations) > 1:
+            lines.extend(f"  - {item['message']}" for item in result.violations[1:])
+            return "\n".join(lines)
+        return lines[0]
+    return f"[release-policy] OK (version={result.metrics.get('version', '')})"
+
+
 def run_release_policy_check(
     *,
     repo_root: Path,
@@ -99,56 +179,14 @@ def run_release_policy_check(
     diff_base: str,
     diff_head: str,
 ) -> int:
-    pyproject = repo_root / "pyproject.toml"
-    if not pyproject.exists():
-        print("[release-policy] pyproject.toml missing")
-        return 1
-
-    try:
-        version = _read_project_version(pyproject)
-    except RuntimeError as exc:
-        print(f"[release-policy] {exc}")
-        return 1
-
-    if not VERSION_RE.match(version):
-        print(f"[release-policy] Invalid SemVer version: {version}")
-        return 1
-
-    workflow_violations = _check_release_trust_workflows(repo_root)
-    if workflow_violations:
-        print("[release-policy] Release trust workflow policy violations:")
-        for item in workflow_violations:
-            print(f"  - {item}")
-        return 1
-
-    if release_tag:
-        tag_version = _normalized_tag(release_tag)
-        if tag_version != version:
-            print(
-                "[release-policy] Tag/version mismatch: "
-                f"tag={release_tag!r} -> {tag_version!r}, pyproject={version!r}"
-            )
-            return 1
-
-    if diff_base:
-        try:
-            changed = _git_changed(diff_base=diff_base, diff_head=diff_head)
-        except RuntimeError as exc:
-            print(f"[release-policy] Unable to evaluate changed files: {exc}")
-            return 1
-
-        if "pyproject.toml" in changed:
-            previous_version = _version_at_rev(diff_base)
-            version_changed = previous_version is not None and previous_version != version
-            if version_changed and "CHANGELOG.md" not in changed:
-                print(
-                    "[release-policy] Version changed in pyproject.toml but "
-                    "CHANGELOG.md was not updated."
-                )
-                return 1
-
-    print(f"[release-policy] OK (version={version})")
-    return 0
+    result = check_release_policy(
+        repo_root=repo_root,
+        release_tag=release_tag,
+        diff_base=diff_base,
+        diff_head=diff_head,
+    )
+    print(format_release_policy_result(result))
+    return result.exit_code()
 
 
 def main() -> int:

@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"Refactoring Guardrails","type":"object","properties":{"include":{"type":"array","items":{"type":"string"}},"ignore":{"type":"array","items":{"type":"string"}},"rules":{"type":"object"}},"additionalProperties":true}

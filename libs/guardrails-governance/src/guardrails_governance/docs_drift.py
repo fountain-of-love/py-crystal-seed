@@ -5,6 +5,8 @@ import subprocess
 from pathlib import Path
 from typing import TypedDict
 
+from .result import GuardResult
+
 
 class DriftRule(TypedDict):
     trigger_prefixes: tuple[str, ...]
@@ -27,8 +29,13 @@ REQUIRED_DOCS: set[str] = {
     "docs/maturity/governance-auditability/guardrails-index.md",
     "docs/maturity/governance-auditability/maturity-mechanism-guardrail.md",
     "docs/maturity/governance-auditability/package-boundary-guardrail.md",
+    "docs/maturity/governance-auditability/refactoring-guardrail.md",
     "docs/maturity/governance-auditability/adr-quality-guardrail.md",
     "docs/maturity/governance-auditability/guardrail-library-externalization.md",
+    "docs/maturity/governance-auditability/guardrail-packaging-model.md",
+    "docs/maturity/governance-auditability/commit-lockdown-strategy.md",
+    "docs/maturity/governance-auditability/guardrail-manifest-contract.md",
+    "docs/maturity/governance-auditability/downstream-guardrail-consumption.md",
     "docs/adr/README.md",
     "docs/adr/ADR-0000-template.md",
     "docs/maturity/supply-chain-operations/README.md",
@@ -114,34 +121,71 @@ def _violations_for_changed(changed: set[str]) -> list[str]:
     return violations
 
 
-def run_docs_drift_check(*, repo_root: Path, diff_base: str, diff_head: str) -> int:
+def check_docs_drift(*, repo_root: Path, diff_base: str, diff_head: str) -> GuardResult:
     missing = _exists_check(repo_root)
     if missing:
-        print("[docs-drift] Missing required docs:")
-        for item in missing:
-            print(f"  - {item}")
-        return 1
+        return GuardResult(
+            guard="docs_drift",
+            status="fail",
+            violations=[{"message": item} for item in missing],
+            metrics={"mode": "presence"},
+        )
 
     if not diff_base:
-        print("[docs-drift] Presence checks passed (no DIFF_BASE provided; drift checks skipped).")
-        return 0
+        return GuardResult(
+            guard="docs_drift",
+            status="pass",
+            metrics={"mode": "presence", "diff_evaluated": False},
+            advice=["Presence checks passed (no DIFF_BASE provided; drift checks skipped)."],
+        )
 
     try:
         changed = _changed_files(diff_base=diff_base, diff_head=diff_head)
     except RuntimeError as exc:
-        print(f"[docs-drift] Unable to evaluate change-aware drift rules: {exc}")
-        return 1
+        return GuardResult(
+            guard="docs_drift",
+            status="fail",
+            violations=[{"message": f"Unable to evaluate change-aware drift rules: {exc}"}],
+            metrics={"mode": "diff"},
+        )
 
     violations = _violations_for_changed(changed)
     if violations:
-        print("[docs-drift] Violations:")
-        for item in violations:
-            print(f"  - {item}")
-        print("[docs-drift] Update docs in the same PR or adjust policy intentionally.")
-        return 1
+        return GuardResult(
+            guard="docs_drift",
+            status="fail",
+            violations=[{"message": item} for item in violations],
+            metrics={"mode": "diff", "changed_files": len(changed)},
+            advice=["Update docs in the same PR or adjust policy intentionally."],
+        )
 
-    print("[docs-drift] OK")
-    return 0
+    return GuardResult(
+        guard="docs_drift",
+        status="pass",
+        metrics={"mode": "diff", "changed_files": len(changed), "diff_evaluated": True},
+    )
+
+
+def format_docs_drift_result(result: GuardResult) -> str:
+    if result.status == "fail":
+        first = result.violations[0]["message"] if result.violations else ""
+        if str(first).startswith("Unable to evaluate change-aware drift rules"):
+            return f"[docs-drift] {first}"
+        header = "[docs-drift] Missing required docs:" if result.metrics.get("mode") == "presence" else "[docs-drift] Violations:"
+        lines = [header]
+        lines.extend(f"  - {item['message']}" for item in result.violations)
+        if result.advice:
+            lines.append(f"[docs-drift] {result.advice[0]}")
+        return "\n".join(lines)
+    if result.advice:
+        return f"[docs-drift] {result.advice[0]}"
+    return "[docs-drift] OK"
+
+
+def run_docs_drift_check(*, repo_root: Path, diff_base: str, diff_head: str) -> int:
+    result = check_docs_drift(repo_root=repo_root, diff_base=diff_base, diff_head=diff_head)
+    print(format_docs_drift_result(result))
+    return result.exit_code()
 
 
 def main() -> int:

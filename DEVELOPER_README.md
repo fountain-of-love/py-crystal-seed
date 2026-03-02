@@ -112,11 +112,13 @@ Injection rules are controlled by `hooks/post_gen_project.py` and env vars:
   - and validates compatibility contracts in `tools/version_evolution_contracts.json` for core symbols used by lower versions
 - Keep architecture/governance guardrails active:
   - `tools/check_package_boundaries.py` enforces configured cross-package isolation rules
+  - `tools/check_refactoring_guard.py` enforces generic structural refactoring rules
   - `tools/check_adr_quality.py` enforces ADR quality and structure in `docs/adr`
 - Prefer updating scripts/Makefile/CI together when changing tooling.
 - Keep docs in sync with behavior (`README.md`, `dev-ops/README.md`, `scripts/README.md`, template docs).
 - Do not introduce direct edits that break Cookiecutter placeholders in templated files.
 - Validate with `make check` before finalizing substantial changes.
+- `make check` and the installed git `pre-commit` hook both flow through `scripts/run_commit_gate.sh`; this is the repo-owned local commit contract.
 
 ## Keep The Template Lean
 
@@ -141,7 +143,16 @@ Decluttering rule for the cookiecutter repository:
 
 Reference:
 - `docs/maturity/governance-auditability/guardrail-library-externalization.md`
+- `docs/maturity/governance-auditability/guardrail-packaging-model.md`
+- `docs/maturity/governance-auditability/commit-lockdown-strategy.md`
+- `docs/maturity/governance-auditability/guardrail-manifest-contract.md`
+- `docs/maturity/governance-auditability/downstream-guardrail-consumption.md`
 - `docs/maturity/governance-auditability/federated-governance-hooks.md`
+
+Packaging direction:
+- shared guardrails should be publishable Python packages
+- downstream repos should rely on package versions, CLI entrypoints, repo-local manifests, and additive local hooks
+- shell wrappers remain convenience surfaces, not the primary reusable contract
 
 ## Abstract Evolutionary Architecture Policy
 

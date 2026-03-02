@@ -6,11 +6,21 @@ build-backend = "setuptools.build_meta"
 name = "guardrails-governance"
 version = "0.1.0"
 description = "Governance guardrail policy engine"
+readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["pyyaml"]
+dependencies = ["pyyaml", "guardrails-architecture>=0.1.0", "guardrails-release>=0.1.0"]
+
+[project.scripts]
+guardrails-check-adr = "guardrails_governance.cli:check_adr"
+guardrails-check-docs-drift = "guardrails_governance.cli:check_docs_drift"
+guardrails-check-waivers = "guardrails_governance.cli:check_waivers"
+guardrails-report-weekly = "guardrails_governance.cli:report_weekly_cli"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+guardrails_governance = ["resources/**/*.md", "resources/**/*.json", "resources/**/*.yml"]

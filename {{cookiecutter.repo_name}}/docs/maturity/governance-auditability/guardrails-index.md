@@ -53,29 +53,67 @@ Purpose:
      - explicit cross-package import boundaries
      - configuration-driven architecture isolation policy
 
-8. ADR quality guardrail
+8. Refactoring guardrail
+   - File: [refactoring-guardrail.md](refactoring-guardrail.md)
+   - Enforces:
+     - wildcard import bans
+     - relative import depth discipline
+     - internal dependency cycle prevention
+
+9. ADR quality guardrail
    - File: [adr-quality-guardrail.md](adr-quality-guardrail.md)
    - Enforces:
      - decision-record template and metadata quality
      - minimum alternatives and explicit tradeoff capture
 
-9. Maturity mechanism guardrail
+10. Maturity mechanism guardrail
    - File: [maturity-mechanism-guardrail.md](maturity-mechanism-guardrail.md)
    - Enforces:
      - single maturity-based docs structure
      - status dashboard + adoption mechanism continuity
 
-10. Guardrail library externalization guardrail
+11. Guardrail library externalization guardrail
    - File: [guardrail-library-externalization.md](guardrail-library-externalization.md)
    - Enforces:
      - stable local command facade for guardrails
      - planned migration path from in-repo policy logic to shared versioned libraries
 
-11. Federated governance hook guardrail
+12. Federated governance hook guardrail
    - File: [federated-governance-hooks.md](federated-governance-hooks.md)
    - Enforces:
      - central shared guardrails remain mandatory
      - project-specific local governance can be added without forking central policy
+
+## Rollout Architecture Docs
+
+These documents define the rollout target for making guardrails publishable, declarative, and consumption-ready across projects.
+
+13. Guardrail packaging model
+   - File: [guardrail-packaging-model.md](guardrail-packaging-model.md)
+   - Defines:
+     - canonical package structure
+     - stable Python API and CLI surface
+     - package-data and SemVer rules
+
+14. Commit lockdown strategy
+   - File: [commit-lockdown-strategy.md](commit-lockdown-strategy.md)
+   - Defines:
+     - commit, CI, release, and weekly enforcement tiers
+     - full-governance target for agentic development
+
+15. Guardrail manifest contract
+   - File: [guardrail-manifest-contract.md](guardrail-manifest-contract.md)
+   - Defines:
+     - repo-local manifest ownership
+     - package-owned schemas/defaults
+     - result envelope and config resolution rules
+
+16. Downstream guardrail consumption
+   - File: [downstream-guardrail-consumption.md](downstream-guardrail-consumption.md)
+   - Defines:
+     - internal-package consumption model
+     - pre-commit and GitLab CI integration
+     - additive local hook extension model
 
 ## Related Operational Docs
 

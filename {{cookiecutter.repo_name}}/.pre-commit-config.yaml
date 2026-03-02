@@ -13,7 +13,37 @@ repos:
         pass_filenames: false
       - id: version-import-boundary
         name: Check version import boundaries
-        entry: ./venv/bin/python ./tools/check_version_import_boundaries.py
+        entry: ./venv/bin/guardrails-check-version-evolution --repo-root .
+        language: system
+        pass_filenames: false
+      - id: package-boundaries
+        name: Check package boundaries
+        entry: ./venv/bin/guardrails-check-package-boundaries --repo-root . --config tools/package_boundaries.yml
+        language: system
+        pass_filenames: false
+      - id: refactoring-guard
+        name: Check refactoring guardrails
+        entry: ./venv/bin/guardrails-check-refactoring --repo-root . --config tools/refactoring_guardrails.yml
+        language: system
+        pass_filenames: false
+      - id: docs-drift
+        name: Check docs drift
+        entry: ./venv/bin/guardrails-check-docs-drift --repo-root .
+        language: system
+        pass_filenames: false
+      - id: adr-quality
+        name: Check ADR quality
+        entry: ./venv/bin/guardrails-check-adr --repo-root .
+        language: system
+        pass_filenames: false
+      - id: waivers
+        name: Check waiver policy
+        entry: ./venv/bin/guardrails-check-waivers --repo-root . --config waivers/waivers.yml
+        language: system
+        pass_filenames: false
+      - id: release-policy
+        name: Check release policy
+        entry: ./venv/bin/guardrails-check-release-policy --repo-root .
         language: system
         pass_filenames: false
       - id: test

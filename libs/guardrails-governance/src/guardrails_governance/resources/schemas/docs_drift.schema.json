@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"Docs Drift Defaults","type":"object","properties":{"required_docs":{"type":"array","items":{"type":"string"}},"rules":{"type":"array","items":{"type":"object"}}},"additionalProperties":true}

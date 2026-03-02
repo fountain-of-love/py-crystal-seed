@@ -1,0 +1,5 @@
+perf_iterations: 20000
+perf_max_ms: 0.02
+leak_iterations: 25000
+leak_max_growth_kb: 64
+recovery_max_retries: 4

@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"Ops Gate Policy","type":"object","properties":{"perf_iterations":{"type":"integer"},"perf_max_ms":{"type":"number"},"leak_iterations":{"type":"integer"},"leak_max_growth_kb":{"type":"integer"},"recovery_max_retries":{"type":"integer"}},"additionalProperties":true}

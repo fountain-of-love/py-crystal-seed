@@ -56,8 +56,9 @@ Signals:
 - version evolution guardrail enforces facade-only cross-version imports
 - compatibility hard rule enforced through protected core contract snapshots
 - docs drift, release policy, and waiver governance checks active
-- package-boundary import guardrail and ADR quality guardrail active
+- package-boundary import guardrail, refactoring guardrail, and ADR quality guardrail active
 - externalization strategy defined for migrating guardrail internals into shared libraries
+- packaging, manifest, commit-lockdown, and downstream-consumption rollout docs defined
 
 Primary commands:
 - `make release-policy`
@@ -96,9 +97,13 @@ Key docs:
 - next: publish these boundaries as external shared libraries and switch template dependencies to versioned packages
 
 3. `bubblegum` governance parity
-- add refactoring guard
 - add coverage governance
 - add maturity evidence and guard telemetry/reporting
+
+4. Commit lockdown and weekly reporting implementation
+- expand `pre-commit` to the full governance set
+- add GitLab `quality_governance` and `weekly_governance_report`
+- standardize package CLI + manifest + result-envelope contracts
 
 ## Review Cadence
 

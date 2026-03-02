@@ -10,6 +10,7 @@ Runs the default smoke matrix:
 - pytest suite
 - version evolution guardrail (import boundaries + compatibility contracts)
 - package boundary guardrail (config-driven cross-package import rules)
+- refactoring guardrail (wildcard import, relative import depth, internal cycle checks)
 - ADR quality guardrail (naming/template consistency)
 
 Usage:
@@ -17,6 +18,13 @@ Usage:
 ```bash
 ./tools/smoke_matrix.sh
 ```
+
+## `../scripts/run_commit_gate.sh`
+
+Runs the local commit gate:
+- delegates to `pre-commit` when the dev toolchain is installed in `venv`
+- fails clearly when required commit-time modules are missing
+- is the canonical local commit entrypoint used by the repo-owned git hook
 
 ## `check_version_import_boundaries.py`
 
@@ -66,6 +74,23 @@ Usage:
 
 ```bash
 ./venv/bin/python ./tools/check_package_boundaries.py
+```
+
+## `check_refactoring_guard.py`
+
+Runs the generic structural refactoring guard:
+- forbids wildcard imports
+- limits relative import depth
+- detects internal dependency cycles in the root package
+- implemented as a thin CLI wrapper over `guardrails-architecture` (`guardrails_architecture.refactoring_guard`)
+
+Config file:
+- `tools/refactoring_guardrails.yml`
+
+Usage:
+
+```bash
+./venv/bin/python ./tools/check_refactoring_guard.py
 ```
 
 ## `check_adr_quality.py`
@@ -144,9 +169,15 @@ Current state:
 - generated projects may add local policy through `project_governance/hooks.py`
 - wrappers always run central guardrails first; local hooks run only after central pass
 
+Target reusable contract:
+- Python package dependency
+- CLI entrypoint
+- repo-local manifest/config
+- additive local hook
+
 Decluttering rule:
 - do not grow `tools/` with more policy logic
-- keep new guard behavior in `src/.../guardrails/`
+- keep new guard behavior in shared `guardrails-*` libraries
 - treat the cookiecutter copy as adapter/config/docs surface, not as the long-term home of governance internals
 
 ## Federated Governance Hook
@@ -161,3 +192,7 @@ Contract:
 
 See:
 - `docs/maturity/governance-auditability/federated-governance-hooks.md`
+- `docs/maturity/governance-auditability/guardrail-packaging-model.md`
+- `docs/maturity/governance-auditability/commit-lockdown-strategy.md`
+- `docs/maturity/governance-auditability/guardrail-manifest-contract.md`
+- `docs/maturity/governance-auditability/downstream-guardrail-consumption.md`

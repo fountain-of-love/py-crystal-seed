@@ -16,6 +16,9 @@ echo "[smoke] Running version evolution guardrail"
 echo "[smoke] Running package boundary guardrail"
 ./venv/bin/python ./tools/check_package_boundaries.py
 
+echo "[smoke] Running refactoring guardrail"
+./venv/bin/python ./tools/check_refactoring_guard.py
+
 echo "[smoke] Running ADR quality guardrail"
 ./venv/bin/python ./tools/check_adr_quality.py
 

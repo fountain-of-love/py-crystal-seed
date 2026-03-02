@@ -22,6 +22,8 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, cast
 
+from .result import GuardResult
+
 VERSION_RE = re.compile(r"^v(\d+)$")
 DEFAULT_CONTRACTS_FILE = "tools/version_evolution_contracts.json"
 
@@ -251,27 +253,23 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def run_version_evolution_check(argv: list[str] | None = None) -> int:
-    args = _parse_args(argv or sys.argv[1:])
-
-    repo_root_env = os.getenv("REPO_ROOT", "").strip()
-    repo_root = (
-        Path(repo_root_env).resolve() if repo_root_env else Path.cwd()
-    )
+def check_version_evolution(
+    *,
+    repo_root: Path,
+    root_package: str,
+    version_namespace: str,
+    core_namespace: str,
+    contracts_file: Path,
+    write_contract: bool = False,
+) -> GuardResult:
     src_root = repo_root / "src"
-
-    root_package = os.getenv("ROOT_PACKAGE", "").strip() or _discover_root_package(src_root)
     if not root_package:
-        print("[evolution-guard] Skipped: could not determine root package.")
-        return 0
-
-    version_namespace = os.getenv("VERSION_NAMESPACE", "versions").strip() or "versions"
-    core_namespace = os.getenv("CORE_NAMESPACE", "core").strip() or "core"
-    contracts_env = os.getenv("EVOLUTION_CONTRACTS_FILE", DEFAULT_CONTRACTS_FILE).strip()
-    contracts_file = Path(contracts_env or DEFAULT_CONTRACTS_FILE)
-    if not contracts_file.is_absolute():
-        contracts_file = (repo_root / contracts_file).resolve()
-
+        return GuardResult(
+            guard="version_evolution",
+            status="pass",
+            metrics={"skipped": True},
+            advice=["Skipped: could not determine root package."],
+        )
     scan_root = src_root / root_package
     boundary_violations: list[str] = []
     for file_path in _iter_python_files(scan_root):
@@ -331,10 +329,14 @@ def run_version_evolution_check(argv: list[str] | None = None) -> int:
         if key in current_core_signatures
     }
 
-    if args.write_contract:
+    if write_contract:
         _write_contract(contracts_file, protected_current_signatures)
-        print(f"[evolution-guard] Contract written: {contracts_file}")
-        return 0
+        return GuardResult(
+            guard="version_evolution",
+            status="pass",
+            metrics={"contract_written": str(contracts_file), "protected_keys": len(protected_keys)},
+            advice=[f"Contract written: {contracts_file}"],
+        )
 
     compatibility_violations: list[str] = []
     if protected_keys:
@@ -367,31 +369,90 @@ def run_version_evolution_check(argv: list[str] | None = None) -> int:
                         f"current={current_core_signatures[key]!r}"
                     )
 
+    violations = (
+        [{"category": "import-boundary", "message": item} for item in boundary_violations]
+        + [{"category": "compatibility", "message": item} for item in compatibility_violations]
+    )
+    advice: list[str] = []
     if boundary_violations:
-        print("[import-boundary] Violations found:")
-        for item in boundary_violations:
-            print(f"  - {item}")
-        print(
-            "[import-boundary] Rule: vN may import only previous facade modules "
+        advice.append(
+            "Rule: vN may import only previous facade modules "
             "(facade or *_v(N-1)); previous internals are forbidden."
         )
-
     if compatibility_violations:
-        print("[compatibility] Violations found:")
-        for item in compatibility_violations:
-            print(f"  - {item}")
-        print(
-            "[compatibility] Rule: core contracts used by lower versions are stable; "
+        advice.append(
+            "Rule: core contracts used by lower versions are stable; "
             "extend/wrap/subclass instead of changing existing contracts."
         )
-
-    if boundary_violations or compatibility_violations:
-        return 1
-
-    print("[evolution-guard] OK: import-boundary and compatibility checks passed.")
     if not protected_keys:
-        print("[evolution-guard] No protected lower-version core contracts discovered.")
-    return 0
+        advice.append("No protected lower-version core contracts discovered.")
+
+    return GuardResult(
+        guard="version_evolution",
+        status="fail" if violations else "pass",
+        violations=violations,
+        metrics={"protected_keys": len(protected_keys)},
+        advice=advice,
+    )
+
+
+def format_version_evolution_result(result: GuardResult) -> str:
+    if result.metrics.get("skipped"):
+        return f"[evolution-guard] {result.advice[0]}"
+    if result.metrics.get("contract_written"):
+        return f"[evolution-guard] {result.advice[0]}"
+
+    lines: list[str] = []
+    import_violations = [item["message"] for item in result.violations if item.get("category") == "import-boundary"]
+    compatibility_violations = [item["message"] for item in result.violations if item.get("category") == "compatibility"]
+
+    if import_violations:
+        lines.append("[import-boundary] Violations found:")
+        lines.extend(f"  - {item}" for item in import_violations)
+        if result.advice:
+            lines.append(f"[import-boundary] {result.advice[0]}")
+
+    if compatibility_violations:
+        advice_idx = 1 if import_violations else 0
+        lines.append("[compatibility] Violations found:")
+        lines.extend(f"  - {item}" for item in compatibility_violations)
+        if len(result.advice) > advice_idx:
+            lines.append(f"[compatibility] {result.advice[advice_idx]}")
+
+    if lines:
+        return "\n".join(lines)
+
+    lines = ["[evolution-guard] OK: import-boundary and compatibility checks passed."]
+    if result.advice:
+        lines.append(f"[evolution-guard] {result.advice[-1]}")
+    return "\n".join(lines)
+
+
+def run_version_evolution_check(argv: list[str] | None = None) -> int:
+    args = _parse_args(argv or sys.argv[1:])
+
+    repo_root_env = os.getenv("REPO_ROOT", "").strip()
+    repo_root = Path(repo_root_env).resolve() if repo_root_env else Path.cwd()
+    src_root = repo_root / "src"
+
+    root_package = os.getenv("ROOT_PACKAGE", "").strip() or _discover_root_package(src_root)
+    version_namespace = os.getenv("VERSION_NAMESPACE", "versions").strip() or "versions"
+    core_namespace = os.getenv("CORE_NAMESPACE", "core").strip() or "core"
+    contracts_env = os.getenv("EVOLUTION_CONTRACTS_FILE", DEFAULT_CONTRACTS_FILE).strip()
+    contracts_file = Path(contracts_env or DEFAULT_CONTRACTS_FILE)
+    if not contracts_file.is_absolute():
+        contracts_file = (repo_root / contracts_file).resolve()
+
+    result = check_version_evolution(
+        repo_root=repo_root,
+        root_package=root_package,
+        version_namespace=version_namespace,
+        core_namespace=core_namespace,
+        contracts_file=contracts_file,
+        write_contract=args.write_contract,
+    )
+    print(format_version_evolution_result(result))
+    return result.exit_code()
 
 
 def main(argv: list[str] | None = None) -> int:

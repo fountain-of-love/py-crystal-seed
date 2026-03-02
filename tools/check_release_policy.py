@@ -1,49 +1,32 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import importlib
+import os
 import sys
-from collections.abc import Callable
 from pathlib import Path
-from typing import Any, cast
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-SRC_ROOT = REPO_ROOT / "src"
-if str(SRC_ROOT) not in sys.path:
-    sys.path.insert(0, str(SRC_ROOT))
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPT_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_REPO_ROOT))
 
+from tools._guardrail_wrapper import load_cli, resolve_repo_root, run_local_hook
 
-def _load_module() -> Any:
-    module_name = "guardrails_release.release_policy"
-    try:
-        return importlib.import_module(module_name)
-    except ModuleNotFoundError:
-        local_src = REPO_ROOT / "libs" / "guardrails-release" / "src"
-        if local_src.exists() and str(local_src) not in sys.path:
-            sys.path.insert(0, str(local_src))
-        return importlib.import_module(module_name)
-
-
-def _run_local_hook() -> int:
-    try:
-        hooks = importlib.import_module("project_governance.hooks")
-    except ModuleNotFoundError as exc:
-        if exc.name in {"project_governance", "project_governance.hooks"}:
-            return 0
-        raise
-    hook = getattr(hooks, "check_release_policy", None)
-    if not callable(hook):
-        return 0
-    result = cast(Callable[[Path], int | None], hook)(REPO_ROOT)
-    return 0 if result is None else int(result)
-
-
-module = _load_module()
+module = load_cli(
+    "guardrails_release.cli",
+    SCRIPT_REPO_ROOT / "libs" / "guardrails-release" / "src",
+)
 
 if __name__ == "__main__":
-    central_rc = int(module.main())
+    repo_root = resolve_repo_root()
+    argv = ["--repo-root", str(repo_root)]
+    release_tag = os.environ.get("RELEASE_TAG", "").strip()
+    diff_base = os.environ.get("DIFF_BASE", "").strip()
+    diff_head = os.environ.get("DIFF_HEAD", "HEAD").strip()
+    if release_tag:
+        argv.extend(["--release-tag", release_tag])
+    if diff_base:
+        argv.extend(["--diff-base", diff_base, "--diff-head", diff_head])
+    central_rc = int(module.check_release_policy(argv))
     if central_rc != 0:
         raise SystemExit(central_rc)
-    raise SystemExit(_run_local_hook())
+    raise SystemExit(run_local_hook(repo_root, "check_release_policy"))

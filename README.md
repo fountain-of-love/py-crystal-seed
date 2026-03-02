@@ -28,6 +28,7 @@ This repository is a **template project**. It provides:
 * GitLab tag-based release gates (`.gitlab-ci.yml`: build/sign -> verify -> publish)
 * Operations-hardening gate (`make ops-gate`: perf, leak, recovery, observability)
 * Version evolution guardrail (facade-only cross-version imports + lower-version core contract stability)
+* Refactoring guardrail (wildcard imports, relative import depth, internal cycle detection)
 * Release policy + docs-drift governance checks
 * Waiver registry governance with explicit expiry/ownership checks
 * Editable installs (`pip install -e .`)
@@ -216,6 +217,9 @@ This template separates gates by intent:
 
 This keeps day-to-day iteration fast while still making runtime reliability and release trust explicit and testable.
 
+Local commits use the repo-owned gate in `scripts/run_commit_gate.sh`.
+That avoids hidden dependence on a generated `.git/hooks/pre-commit` launcher whose Python environment can drift from the repository contract.
+
 ### Maturity model (Java-style analog target)
 
 Documentation and guardrails are organized by four maturity pillars:
@@ -261,10 +265,20 @@ For package boundary and ADR governance guardrails, see
 **[docs/maturity/governance-auditability/package-boundary-guardrail.md](docs/maturity/governance-auditability/package-boundary-guardrail.md)**
 and
 **[docs/maturity/governance-auditability/adr-quality-guardrail.md](docs/maturity/governance-auditability/adr-quality-guardrail.md)**.
+For generic structural refactoring rules, see
+**[docs/maturity/governance-auditability/refactoring-guardrail.md](docs/maturity/governance-auditability/refactoring-guardrail.md)**.
 Use the default ADR template at
 **[docs/adr/ADR-0000-template.md](docs/adr/ADR-0000-template.md)**.
 For the lean-template adoption strategy via shared guardrail libraries, see
 **[docs/maturity/governance-auditability/guardrail-library-externalization.md](docs/maturity/governance-auditability/guardrail-library-externalization.md)**.
+For the canonical packaging and publication model for guardrail libraries, see
+**[docs/maturity/governance-auditability/guardrail-packaging-model.md](docs/maturity/governance-auditability/guardrail-packaging-model.md)**.
+For the target enforcement matrix for commits, CI, releases, and weekly reporting, see
+**[docs/maturity/governance-auditability/commit-lockdown-strategy.md](docs/maturity/governance-auditability/commit-lockdown-strategy.md)**.
+For the declarative config and result-envelope contract, see
+**[docs/maturity/governance-auditability/guardrail-manifest-contract.md](docs/maturity/governance-auditability/guardrail-manifest-contract.md)**.
+For how downstream projects should consume published guardrails, see
+**[docs/maturity/governance-auditability/downstream-guardrail-consumption.md](docs/maturity/governance-auditability/downstream-guardrail-consumption.md)**.
 For the central-plus-local governance extension model, see
 **[docs/maturity/governance-auditability/federated-governance-hooks.md](docs/maturity/governance-auditability/federated-governance-hooks.md)**.
 For the full guardrail map, see
@@ -276,8 +290,13 @@ Core guardrail docs:
 - **[Documentation drift guardrail](docs/maturity/governance-auditability/docs-drift-guardrail.md)**
 - **[Waiver governance guardrail](docs/maturity/governance-auditability/waiver-governance-guardrail.md)**
 - **[Package boundary guardrail](docs/maturity/governance-auditability/package-boundary-guardrail.md)**
+- **[Refactoring guardrail](docs/maturity/governance-auditability/refactoring-guardrail.md)**
 - **[ADR quality guardrail](docs/maturity/governance-auditability/adr-quality-guardrail.md)**
 - **[Guardrail library externalization](docs/maturity/governance-auditability/guardrail-library-externalization.md)**
+- **[Guardrail packaging model](docs/maturity/governance-auditability/guardrail-packaging-model.md)**
+- **[Commit lockdown strategy](docs/maturity/governance-auditability/commit-lockdown-strategy.md)**
+- **[Guardrail manifest contract](docs/maturity/governance-auditability/guardrail-manifest-contract.md)**
+- **[Downstream guardrail consumption](docs/maturity/governance-auditability/downstream-guardrail-consumption.md)**
 - **[Federated governance hooks](docs/maturity/governance-auditability/federated-governance-hooks.md)**
 - **[Maturity mechanism guardrail](docs/maturity/governance-auditability/maturity-mechanism-guardrail.md)**
 For release promotion and rollback steps, see
@@ -293,6 +312,8 @@ Depending on your project’s maturity, you may consider extending it with:
 - domain-specific package boundary rules in `tools/package_boundaries.yml`
 - ADR workflows (decision templates + review automation) for architecture-heavy teams
 - extraction of local guardrail internals into shared versioned libraries
+- package CLI publication with manifest-driven policy contracts
+- full-governance commit blocking and weekly governance reporting
 - stronger runtime SLI gates and trend dashboards on top of `make ops-gate`
 - automated release-note/changelog generation with approval controls
 

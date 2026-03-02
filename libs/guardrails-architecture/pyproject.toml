@@ -6,11 +6,20 @@ build-backend = "setuptools.build_meta"
 name = "guardrails-architecture"
 version = "0.1.0"
 description = "Architecture guardrail policy engine"
+readme = "README.md"
 requires-python = ">=3.10"
 dependencies = ["pyyaml"]
+
+[project.scripts]
+guardrails-check-version-evolution = "guardrails_architecture.cli:check_version_evolution_cli"
+guardrails-check-package-boundaries = "guardrails_architecture.cli:check_package_boundaries_cli"
+guardrails-check-refactoring = "guardrails_architecture.cli:check_refactoring"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+guardrails_architecture = ["resources/**/*.json", "resources/**/*.yml"]

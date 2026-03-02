@@ -11,6 +11,19 @@ variables:
   PIP_NO_CACHE_DIR: "1"
 
 # gitlab-ops-gates
+quality_governance:
+  stage: quality
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH'
+  script:
+    - set -eu
+    - ./scripts/bootstrap.sh
+    - make smoke
+    - make governance-check
+
 ops_gates:
   stage: quality
   rules:
@@ -20,9 +33,22 @@ ops_gates:
     - if: '$CI_COMMIT_BRANCH'
   script:
     - set -eu
-    - python -m pip install -U pip wheel
-    - python -m pip install -e '.[dev]'
+    - ./scripts/bootstrap.sh
     - make ops-gate
+
+weekly_governance_report:
+  stage: quality
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  script:
+    - set -eu
+    - ./scripts/bootstrap.sh
+    - ./venv/bin/guardrails-report-weekly --repo-root . --output-dir artifacts/governance
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - artifacts/governance/*
 
 # gitlab-release-build-sign
 release_build_sign:
@@ -34,11 +60,10 @@ release_build_sign:
       aud: sigstore
   script:
     - set -eu
-    - python -m pip install -U pip wheel
-    - python -m pip install -e '.[dev]'
-    - RELEASE_TAG="$CI_COMMIT_TAG" python tools/check_release_policy.py
-    - python -m build
-    - python -m twine check dist/*
+    - ./scripts/bootstrap.sh
+    - ./venv/bin/guardrails-check-release-policy --repo-root . --release-tag "$CI_COMMIT_TAG"
+    - ./venv/bin/python -m build
+    - ./venv/bin/python -m twine check dist/*
     - |
       found=0
       for artifact in dist/*.whl dist/*.tar.gz; do
@@ -46,7 +71,7 @@ release_build_sign:
           continue
         fi
         found=1
-        python -m sigstore sign \
+        ./venv/bin/python -m sigstore sign \
           --identity-token "$SIGSTORE_ID_TOKEN" \
           --oidc-issuer "${SIGSTORE_OIDC_ISSUER:-https://gitlab.com}" \
           --overwrite \
@@ -83,7 +108,7 @@ release_verify_gate:
       artifacts: true
   script:
     - set -eu
-    - python -m pip install -U pip sigstore
+    - ./scripts/bootstrap.sh
     - |
       if [ -z "${SIGSTORE_CERT_IDENTITY:-}" ]; then
         echo "Set SIGSTORE_CERT_IDENTITY in GitLab CI/CD variables for release verification."
@@ -101,7 +126,7 @@ release_verify_gate:
           echo "Missing Sigstore bundle: $bundle"
           exit 1
         fi
-        python -m sigstore verify identity "$artifact" \
+        ./venv/bin/python -m sigstore verify identity "$artifact" \
           --bundle "$bundle" \
           --cert-identity "$SIGSTORE_CERT_IDENTITY" \
           --cert-oidc-issuer "${SIGSTORE_OIDC_ISSUER:-https://gitlab.com}"
@@ -122,13 +147,13 @@ release_publish_testpypi:
       artifacts: true
   script:
     - set -eu
-    - python -m pip install -U pip twine
+    - ./scripts/bootstrap.sh
     - |
       if [ -z "${TEST_PYPI_API_TOKEN:-}" ]; then
         echo "Set TEST_PYPI_API_TOKEN for TestPyPI publish."
         exit 1
       fi
-    - python -m twine upload --non-interactive --repository-url https://test.pypi.org/legacy/ -u __token__ -p "$TEST_PYPI_API_TOKEN" dist/*
+    - ./venv/bin/python -m twine upload --non-interactive --repository-url https://test.pypi.org/legacy/ -u __token__ -p "$TEST_PYPI_API_TOKEN" dist/*
 
 # gitlab-release-publish-pypi
 release_publish_pypi:
@@ -141,10 +166,10 @@ release_publish_pypi:
       artifacts: true
   script:
     - set -eu
-    - python -m pip install -U pip twine
+    - ./scripts/bootstrap.sh
     - |
       if [ -z "${PYPI_API_TOKEN:-}" ]; then
         echo "Set PYPI_API_TOKEN for PyPI publish."
         exit 1
       fi
-    - python -m twine upload --non-interactive -u __token__ -p "$PYPI_API_TOKEN" dist/*
+    - ./venv/bin/python -m twine upload --non-interactive -u __token__ -p "$PYPI_API_TOKEN" dist/*
