@@ -220,6 +220,15 @@ This keeps day-to-day iteration fast while still making runtime reliability and 
 Local commits use the repo-owned gate in `scripts/run_commit_gate.sh`.
 That avoids hidden dependence on a generated `.git/hooks/pre-commit` launcher whose Python environment can drift from the repository contract.
 
+The next recommended wave is governance depth:
+- coverage governance
+- maturity evidence enforcement
+- weekly trend reporting and guard telemetry
+- refactoring guard expansion
+
+Roadmap:
+- `docs/maturity/roadmap/phase-3-governance-depth-wave.md`
+
 ### Maturity model (Java-style analog target)
 
 Documentation and guardrails are organized by four maturity pillars:

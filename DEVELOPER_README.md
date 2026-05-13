@@ -64,6 +64,8 @@ make release-policy  # enforce SemVer/tag/changelog policy
 make package-boundaries-check # enforce cross-package import boundaries
 make adr-check       # enforce ADR decision-record quality
 make governance-check # run governance guardrail bundle
+make coverage-governance # enforce coverage thresholds and parity
+make maturity-evidence # enforce governance evidence for production changes
 make release-ready   # run full release readiness gate
 make supplychain-scan # dependency integrity + vulnerability scan
 make sbom            # generate CycloneDX SBOM
@@ -148,6 +150,7 @@ Reference:
 - `docs/maturity/governance-auditability/guardrail-manifest-contract.md`
 - `docs/maturity/governance-auditability/downstream-guardrail-consumption.md`
 - `docs/maturity/governance-auditability/federated-governance-hooks.md`
+- `docs/maturity/roadmap/phase-3-governance-depth-wave.md`
 
 Packaging direction:
 - shared guardrails should be publishable Python packages

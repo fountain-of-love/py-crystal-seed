@@ -1,0 +1,16 @@
+version: 1
+coverage_file: coverage.xml
+baseline_file: tools/coverage_baseline.json
+thresholds:
+  global_min: 80
+  package_min:
+    py_crystal_seed: 85
+parity:
+  enabled: true
+  max_regression_points: 0.5
+scope:
+  include:
+    - src/**
+  exclude:
+    - tests/**
+    - scripts/**

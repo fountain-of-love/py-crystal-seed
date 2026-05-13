@@ -8,13 +8,14 @@ This dashboard tracks current progress toward the Java-style engineering maturit
 | --- | ---: | --- |
 | Build/test/type/lint discipline | 95% | Strong |
 | Packaging/distribution discipline | 94% | Strong |
-| Governance/auditability discipline | 93% | Strong |
+| Governance/auditability discipline | 96% | Strong |
 | Supply-chain/operations hardening | 80% | Advancing |
 
-Overall maturity estimate: **~92%**
+Overall maturity estimate: **~94%**
 
 Roadmap reference:
 - `docs/maturity/roadmap/guardrail-library-roadmap.md`
+- `docs/maturity/roadmap/phase-3-governance-depth-wave.md`
 
 ## Evidence by Pillar
 
@@ -50,7 +51,7 @@ Key docs:
 - `docs/maturity/packaging-distribution/packaging-distribution.md`
 - `RELEASING.md`
 
-### 3) Governance/Auditability (93%)
+### 3) Governance/Auditability (96%)
 
 Signals:
 - version evolution guardrail enforces facade-only cross-version imports
@@ -59,6 +60,9 @@ Signals:
 - package-boundary import guardrail, refactoring guardrail, and ADR quality guardrail active
 - externalization strategy defined for migrating guardrail internals into shared libraries
 - packaging, manifest, commit-lockdown, and downstream-consumption rollout docs defined
+- coverage governance and maturity evidence guardrails implemented
+- weekly reporting now includes trend/history support
+- refactoring guard supports directional and concrete-import policy rules
 
 Primary commands:
 - `make release-policy`
@@ -89,21 +93,8 @@ Key docs:
 ## Highest-Value Next Gaps
 
 1. Supply-chain trust depth
-- add external verification consumption/documentation for signed artifacts
-- formalize advisory severity policy thresholds + waiver process for vulnerability gates
-
-2. Guardrail library extraction
-- in-repo package boundaries completed for governance/release/architecture/ops
-- next: publish these boundaries as external shared libraries and switch template dependencies to versioned packages
-
-3. `bubblegum` governance parity
-- add coverage governance
-- add maturity evidence and guard telemetry/reporting
-
-4. Commit lockdown and weekly reporting implementation
-- expand `pre-commit` to the full governance set
-- add GitLab `quality_governance` and `weekly_governance_report`
-- standardize package CLI + manifest + result-envelope contracts
+- add stronger external verification consumption guidance
+- formalize advisory severity thresholds + waiver policy for vulnerability gates
 
 ## Review Cadence
 

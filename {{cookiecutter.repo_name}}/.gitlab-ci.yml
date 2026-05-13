@@ -43,7 +43,7 @@ weekly_governance_report:
   script:
     - set -eu
     - ./scripts/bootstrap.sh
-    - ./venv/bin/guardrails-report-weekly --repo-root . --output-dir artifacts/governance
+    - ./venv/bin/guardrails-report-weekly --repo-root . --config tools/weekly_reporting.yml --output-dir artifacts/governance
   artifacts:
     when: always
     expire_in: 30 days

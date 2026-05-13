@@ -38,10 +38,17 @@ def _discover_root_package(src_root: Path) -> str:
     return ""
 
 
+def _string_list(value: Any, name: str) -> list[str]:
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        raise RuntimeError(f"{name} must be a list of strings")
+    return cast(list[str], value)
+
+
 def _load_config(config_path: Path) -> GuardConfig:
     if not config_path.exists():
         return GuardConfig(
             {
+                "version": 1,
                 "include": ["src"],
                 "ignore": [],
                 "rules": {
@@ -49,6 +56,10 @@ def _load_config(config_path: Path) -> GuardConfig:
                     "max_relative_import_level": 1,
                     "detect_internal_cycles": True,
                     "cycle_roots": [],
+                    "directional_dependencies": [],
+                    "forbid_concrete_imports": [],
+                    "composition_roots": [],
+                    "allow_concrete_wiring_only_in": [],
                 },
             }
         )
@@ -60,34 +71,74 @@ def _load_config(config_path: Path) -> GuardConfig:
         raise RuntimeError("config must be a mapping")
     payload = cast(dict[str, Any], payload_obj)
 
-    include_raw = payload.get("include", ["src"])
-    ignore_raw = payload.get("ignore", [])
-    rules_raw = payload.get("rules", {})
+    version = payload.get("version", 1)
+    if version != 1:
+        raise RuntimeError("config version must be 1")
 
-    if not isinstance(include_raw, list):
-        raise RuntimeError("include must be a list of strings")
-    include_items = cast(list[Any], include_raw)
-    if not all(isinstance(item, str) for item in include_items):
-        raise RuntimeError("include must be a list of strings")
-    if not isinstance(ignore_raw, list):
-        raise RuntimeError("ignore must be a list of strings")
-    ignore_items = cast(list[Any], ignore_raw)
-    if not all(isinstance(item, str) for item in ignore_items):
-        raise RuntimeError("ignore must be a list of strings")
+    include_items = _string_list(payload.get("include", ["src"]), "include")
+    ignore_items = _string_list(payload.get("ignore", []), "ignore")
+    rules_raw = payload.get("rules", {})
     if not isinstance(rules_raw, dict):
         raise RuntimeError("rules must be a mapping")
-
     rules = cast(dict[str, Any], rules_raw)
+
+    directional_rules: list[dict[str, Any]] = []
+    for index, rule in enumerate(cast(list[Any], rules.get("directional_dependencies", []))):
+        if not isinstance(rule, dict):
+            raise RuntimeError(f"directional_dependencies[{index}] must be a mapping")
+        from_scope = rule.get("from", "")
+        may_import = rule.get("may_import", [])
+        if not isinstance(from_scope, str) or not from_scope.strip():
+            raise RuntimeError(f"directional_dependencies[{index}].from must be a non-empty string")
+        directional_rules.append(
+            {
+                "from": from_scope.strip(),
+                "may_import": _string_list(may_import, f"directional_dependencies[{index}].may_import"),
+            }
+        )
+
+    concrete_rules: list[dict[str, Any]] = []
+    for index, rule in enumerate(cast(list[Any], rules.get("forbid_concrete_imports", []))):
+        if not isinstance(rule, dict):
+            raise RuntimeError(f"forbid_concrete_imports[{index}] must be a mapping")
+        scope = rule.get("scope", "")
+        forbidden_prefixes = rule.get("forbidden_prefixes", [])
+        if not isinstance(scope, str) or not scope.strip():
+            raise RuntimeError(f"forbid_concrete_imports[{index}].scope must be a non-empty string")
+        concrete_rules.append(
+            {
+                "scope": scope.strip(),
+                "forbidden_prefixes": _string_list(
+                    forbidden_prefixes,
+                    f"forbid_concrete_imports[{index}].forbidden_prefixes",
+                ),
+            }
+        )
+
     return GuardConfig(
         {
-            "include": cast(list[str], include_items),
-            "ignore": cast(list[str], ignore_items),
+            "version": 1,
+            "include": include_items,
+            "ignore": ignore_items,
             "rules": {
                 "ban_wildcard_imports": bool(rules.get("ban_wildcard_imports", True)),
                 "max_relative_import_level": int(rules.get("max_relative_import_level", 1)),
                 "detect_internal_cycles": bool(rules.get("detect_internal_cycles", True)),
                 "cycle_roots": [
-                    item for item in rules.get("cycle_roots", []) if isinstance(item, str) and item
+                    item for item in _string_list(rules.get("cycle_roots", []), "rules.cycle_roots") if item
+                ],
+                "directional_dependencies": directional_rules,
+                "forbid_concrete_imports": concrete_rules,
+                "composition_roots": [
+                    item for item in _string_list(rules.get("composition_roots", []), "rules.composition_roots") if item
+                ],
+                "allow_concrete_wiring_only_in": [
+                    item
+                    for item in _string_list(
+                        rules.get("allow_concrete_wiring_only_in", []),
+                        "rules.allow_concrete_wiring_only_in",
+                    )
+                    if item
                 ],
             },
         }
@@ -183,6 +234,26 @@ def _detect_cycles(graph: dict[str, set[str]]) -> list[list[str]]:
     return cycles
 
 
+def _scope_matches(module_name: str, scope: str) -> bool:
+    return module_name == scope or module_name.startswith(f"{scope}.")
+
+
+def _is_allowed_import(imported_module: str, source_scope: str, allowed: list[str]) -> bool:
+    if _scope_matches(imported_module, source_scope):
+        return True
+    return any(_scope_matches(imported_module, candidate) for candidate in allowed)
+
+
+def _concrete_import_forbidden(module_name: str, imported_module: str, rule: dict[str, Any], allowed_roots: list[str]) -> bool:
+    scope = cast(str, rule["scope"])
+    forbidden_prefixes = cast(list[str], rule["forbidden_prefixes"])
+    if not _scope_matches(module_name, scope):
+        return False
+    if any(_scope_matches(module_name, allowed_root) for allowed_root in allowed_roots):
+        return False
+    return any(imported_module == prefix or imported_module.startswith(f"{prefix}.") for prefix in forbidden_prefixes)
+
+
 def check_refactoring_guard(*, repo_root: Path, config_path: Path) -> GuardResult:
     try:
         config = _load_config(config_path)
@@ -197,12 +268,18 @@ def check_refactoring_guard(*, repo_root: Path, config_path: Path) -> GuardResul
     max_relative_import_level = int(rules["max_relative_import_level"])
     detect_internal_cycles = bool(rules["detect_internal_cycles"])
     cycle_roots = cast(list[str], rules["cycle_roots"])
+    directional_rules = cast(list[dict[str, Any]], rules["directional_dependencies"])
+    concrete_rules = cast(list[dict[str, Any]], rules["forbid_concrete_imports"])
+    allowed_concrete_roots = cast(list[str], rules["allow_concrete_wiring_only_in"])
 
     if not cycle_roots:
         src_root = repo_root / "src"
         root_package = _discover_root_package(src_root) if src_root.exists() else ""
         if root_package:
             cycle_roots = [root_package]
+
+    directional_checks = 0
+    concrete_checks = 0
 
     for module_name, file_path in module_index.items():
         try:
@@ -212,6 +289,7 @@ def check_refactoring_guard(*, repo_root: Path, config_path: Path) -> GuardResul
             continue
 
         for node in ast.walk(tree):
+            imported_modules: list[str] = []
             if isinstance(node, ast.ImportFrom):
                 if ban_wildcard_imports and any(alias.name == "*" for alias in node.names):
                     violations.append(f"{file_path}:{node.lineno}: wildcard imports are forbidden")
@@ -220,6 +298,8 @@ def check_refactoring_guard(*, repo_root: Path, config_path: Path) -> GuardResul
                         f"{file_path}:{node.lineno}: relative import level {node.level} exceeds allowed maximum {max_relative_import_level}"
                     )
                 abs_module = _resolve_absolute_module(module_name, node)
+                if abs_module:
+                    imported_modules.append(abs_module)
                 if detect_internal_cycles and abs_module:
                     for alias in node.names:
                         if alias.name == "*":
@@ -229,13 +309,32 @@ def check_refactoring_guard(*, repo_root: Path, config_path: Path) -> GuardResul
                         for target in _candidate_targets(abs_module, alias.name, module_index):
                             graph[module_name].add(target)
             elif isinstance(node, ast.Import):
-                for alias in node.names:
-                    imported = alias.name
-                    if detect_internal_cycles and any(
-                        imported == root or imported.startswith(f"{root}.") for root in cycle_roots
-                    ):
-                        if imported in module_index:
-                            graph[module_name].add(imported)
+                imported_modules = [alias.name for alias in node.names]
+                if detect_internal_cycles:
+                    for imported in imported_modules:
+                        if any(imported == root or imported.startswith(f"{root}.") for root in cycle_roots):
+                            if imported in module_index:
+                                graph[module_name].add(imported)
+
+            for imported_module in imported_modules:
+                for rule in directional_rules:
+                    source_scope = cast(str, rule["from"])
+                    if not _scope_matches(module_name, source_scope):
+                        continue
+                    directional_checks += 1
+                    allowed = cast(list[str], rule["may_import"])
+                    if not _is_allowed_import(imported_module, source_scope, allowed):
+                        violations.append(
+                            f"{file_path}:{getattr(node, 'lineno', 0)}: dependency direction violation: "
+                            f"'{module_name}' may not import '{imported_module}' (allowed: {allowed})"
+                        )
+                for rule in concrete_rules:
+                    concrete_checks += 1
+                    if _concrete_import_forbidden(module_name, imported_module, rule, allowed_concrete_roots):
+                        violations.append(
+                            f"{file_path}:{getattr(node, 'lineno', 0)}: concrete import violation: "
+                            f"'{module_name}' may not import '{imported_module}' outside composition roots"
+                        )
 
     if detect_internal_cycles:
         scoped_graph: dict[str, set[str]] = {}
@@ -253,13 +352,21 @@ def check_refactoring_guard(*, repo_root: Path, config_path: Path) -> GuardResul
             guard="refactoring_guard",
             status="fail",
             violations=[{"message": item} for item in violations],
-            metrics={"modules_scanned": len(module_index)},
+            metrics={
+                "modules_scanned": len(module_index),
+                "directional_rules_checked": directional_checks,
+                "concrete_import_rules_checked": concrete_checks,
+            },
         )
 
     return GuardResult(
         guard="refactoring_guard",
         status="pass",
-        metrics={"modules_scanned": len(module_index)},
+        metrics={
+            "modules_scanned": len(module_index),
+            "directional_rules_checked": directional_checks,
+            "concrete_import_rules_checked": concrete_checks,
+        },
     )
 
 

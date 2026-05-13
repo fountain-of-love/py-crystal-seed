@@ -34,8 +34,11 @@ Status:
 - seed-repo local dev copy: `libs/guardrails-architecture/`
 - `tools/check_version_import_boundaries.py`, `tools/check_package_boundaries.py`, and `tools/check_refactoring_guard.py` now target this package boundary
 
-Planned later:
+Implemented in Phase 3 wave:
 - directional dependency rules
+- concrete import restrictions outside composition roots
+
+Planned later:
 - composition-only wiring rules
 - ports-over-concretes checks
 
@@ -50,8 +53,12 @@ Status:
 - seed-repo local dev copy: `libs/guardrails-governance/`
 - `tools/check_docs_drift.py`, `tools/check_adr_quality.py`, and `tools/check_waivers.py` now target this package boundary
 
-Planned later:
+Implemented in Phase 3 wave:
+- coverage governance
 - maturity governance log enforcement
+- weekly reporting trend support
+
+Planned later:
 - scorecard and roadmap evidence checks
 - bypass and exception policy tracking
 
@@ -137,6 +144,9 @@ Exit criteria:
 - governance evidence is required for meaningful changes
 - guard system is observable and reviewable
 
+Detailed next-wave plan:
+- `docs/maturity/roadmap/phase-3-governance-depth-wave.md`
+
 ### Phase 4: Add Optional Domain Guard Packs
 Examples:
 - OpenAPI/documentation contract guards
@@ -156,6 +166,19 @@ These remain opt-in so the template stays lean.
 7. add maturity evidence guard
 8. add guard telemetry and reporting
 9. add optional domain guard packs
+
+## Next Recommended Wave
+
+The next implementation wave should focus on governance depth:
+1. coverage governance
+2. maturity evidence enforcement
+3. weekly trend reporting and guard telemetry
+4. refactoring guard expansion
+
+Why:
+- the packaging and rollout contract is already in place
+- the largest remaining maturity gap is governance depth
+- these controls most directly close the parity gap with stronger governed reference projects
 
 ## Review Rule
 

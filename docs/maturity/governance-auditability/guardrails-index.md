@@ -115,6 +115,17 @@ These documents define the rollout target for making guardrails publishable, dec
      - pre-commit and GitLab CI integration
      - additive local hook extension model
 
+## Next Wave
+
+The next recommended implementation wave is governance depth:
+- coverage governance
+- maturity evidence enforcement
+- guard telemetry and weekly trend reporting
+- refactoring guard expansion
+
+Roadmap:
+- [phase-3-governance-depth-wave.md](../roadmap/phase-3-governance-depth-wave.md)
+
 ## Related Operational Docs
 
 - [operations-hardening-gates.md](../supply-chain-operations/operations-hardening-gates.md)
@@ -122,3 +133,39 @@ These documents define the rollout target for making guardrails publishable, dec
 - [packaging-distribution.md](../packaging-distribution/packaging-distribution.md)
 - [ci-pipeline.md](../build-quality/ci-pipeline.md)
 - [RELEASING.md](../../RELEASING.md)
+
+17. Coverage governance guardrail
+   - File: [coverage-governance-guardrail.md](coverage-governance-guardrail.md)
+   - Enforces:
+     - coverage threshold policy
+     - baseline parity and regression detection
+
+18. Maturity evidence guardrail
+   - File: [maturity-evidence-guardrail.md](maturity-evidence-guardrail.md)
+   - Enforces:
+     - production-change governance evidence
+     - ADR/roadmap/governance-log continuity
+
+19. Governance log contract
+   - File: [governance-log-contract.md](governance-log-contract.md)
+   - Defines:
+     - machine-checkable governance evidence entries
+     - scope linkage from evidence to changed production files
+
+20. Weekly governance reporting
+   - File: [weekly-governance-reporting.md](weekly-governance-reporting.md)
+   - Defines:
+     - weekly markdown/json governance artifacts
+     - trend and history reporting model
+
+21. Guard telemetry model
+   - File: [guard-telemetry-model.md](guard-telemetry-model.md)
+   - Defines:
+     - observable guard status and metric shape
+     - trend fields for governance reporting
+
+22. Architecture manifest recipes
+   - File: [architecture-manifest-recipes.md](architecture-manifest-recipes.md)
+   - Defines:
+     - directional dependency examples
+     - composition-root and concrete-import policy recipes

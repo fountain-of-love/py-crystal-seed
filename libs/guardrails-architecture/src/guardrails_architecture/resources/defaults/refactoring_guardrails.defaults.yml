@@ -1,3 +1,4 @@
+version: 1
 include:
   - src
 ignore: []
@@ -6,3 +7,7 @@ rules:
   max_relative_import_level: 1
   detect_internal_cycles: true
   cycle_roots: []
+  directional_dependencies: []
+  forbid_concrete_imports: []
+  composition_roots: []
+  allow_concrete_wiring_only_in: []

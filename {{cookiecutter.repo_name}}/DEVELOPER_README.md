@@ -148,6 +148,7 @@ Reference:
 - `docs/maturity/governance-auditability/guardrail-manifest-contract.md`
 - `docs/maturity/governance-auditability/downstream-guardrail-consumption.md`
 - `docs/maturity/governance-auditability/federated-governance-hooks.md`
+- `docs/maturity/roadmap/phase-3-governance-depth-wave.md`
 
 Packaging direction:
 - shared guardrails should be publishable Python packages

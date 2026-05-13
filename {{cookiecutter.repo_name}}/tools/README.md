@@ -137,6 +137,33 @@ Usage:
 ./venv/bin/python ./tools/check_waivers.py
 ```
 
+## `check_coverage_governance.py`
+
+Validates coverage governance policy from `tools/coverage_governance.yml`:
+- global coverage threshold
+- package-level coverage thresholds
+- optional baseline parity/regression detection
+- implemented as a thin CLI wrapper over `guardrails-governance` (`guardrails_governance.coverage_governance`)
+
+Usage:
+
+```bash
+./venv/bin/python ./tools/check_coverage_governance.py
+```
+
+## `check_maturity_evidence.py`
+
+Validates governance evidence for production changes from `tools/maturity_evidence.yml`:
+- detects changed production paths
+- accepts ADR, roadmap, governance-log, or explicit governed exception evidence
+- implemented as a thin CLI wrapper over `guardrails-governance` (`guardrails_governance.maturity_evidence`)
+
+Usage:
+
+```bash
+./venv/bin/python ./tools/check_maturity_evidence.py
+```
+
 ## `run_ops_gates.py`
 
 Runs operational hardening checks:

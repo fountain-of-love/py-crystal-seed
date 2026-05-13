@@ -19,6 +19,8 @@ Adoption mechanism for downstream projects:
 - [Maturity mechanism](maturity/maturity-mechanism.md)
 Roadmap for extracting guardrails into shared libraries:
 - [Guardrail library roadmap](maturity/roadmap/guardrail-library-roadmap.md)
+Next implementation wave:
+- [Phase 3 governance depth wave](maturity/roadmap/phase-3-governance-depth-wave.md)
 
 ## Unified Structure
 

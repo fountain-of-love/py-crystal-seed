@@ -1,0 +1,15 @@
+version: 1
+history_dir: artifacts/governance/history
+include_guards:
+  - docs_drift
+  - waivers
+  - release_policy
+  - version_evolution
+  - package_boundaries
+  - refactoring_guard
+  - adr_quality
+  - coverage_governance
+  - maturity_evidence
+retain_reports: 12
+emit_json: true
+emit_markdown: true

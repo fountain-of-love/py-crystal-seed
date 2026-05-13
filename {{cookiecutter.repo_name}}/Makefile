@@ -1,7 +1,7 @@
 VENV := venv
 PY := $(VENV)/bin/python
 
-.PHONY: setup check smoke docs-drift waivers-check release-policy release-ready ops-gate hardening-check supplychain-scan sbom verify-signatures supplychain-check adr-check package-boundaries-check refactoring-guard governance-check weekly-governance-report test lint format typecheck package-build package-check package-install package-publish-test package-publish hooks hooks-refresh clean help
+.PHONY: setup check smoke docs-drift waivers-check coverage-governance maturity-evidence release-policy release-ready ops-gate hardening-check supplychain-scan sbom verify-signatures supplychain-check adr-check package-boundaries-check refactoring-guard governance-check weekly-governance-report test lint format typecheck package-build package-check package-install package-publish-test package-publish hooks hooks-refresh clean help
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?##' Makefile | awk 'BEGIN {FS = ":.*?## "}; {printf "%-15s %s\n", $$1, $$2}'
@@ -29,6 +29,10 @@ setup: ## Create environment, install dev deps, install hooks
 	@chmod +x tools/check_package_boundaries.py || true
 	@chmod +x tools/check_refactoring_guard.py || true
 	@chmod +x tools/check_adr_quality.py || true
+	@chmod +x tools/check_coverage_governance.py || true
+	@chmod +x tools/check_maturity_evidence.py || true
+	@chmod +x tools/check_coverage_governance.py || true
+	@chmod +x tools/check_maturity_evidence.py || true
 	@./scripts/bootstrap.sh
 	@$(PY) -m pip install -e '.[dev]'
 	@$(PY) -m pre_commit install
@@ -58,19 +62,27 @@ adr-check: ## Validate ADR quality and template conformance
 waivers-check: ## Validate waiver registry format and expiry rules
 	@$(PY) ./tools/check_waivers.py
 
+coverage-governance: ## Validate coverage governance thresholds and parity
+	@$(PY) ./tools/check_coverage_governance.py
+
+maturity-evidence: ## Validate governance evidence for production changes
+	@$(PY) ./tools/check_maturity_evidence.py
+
 release-policy: ## Validate SemVer/tag policy and changelog coupling
 	@$(PY) ./tools/check_release_policy.py
 
 governance-check: ## Run governance/auditability guardrail checks
 	@$(MAKE) docs-drift
 	@$(MAKE) waivers-check
+	@$(MAKE) coverage-governance
+	@$(MAKE) maturity-evidence
 	@$(MAKE) release-policy
 	@$(MAKE) package-boundaries-check
 	@$(MAKE) refactoring-guard
 	@$(MAKE) adr-check
 
 weekly-governance-report: ## Generate weekly governance report artifacts
-	@./$(VENV)/bin/guardrails-report-weekly --repo-root . --output-dir artifacts/governance
+	@./$(VENV)/bin/guardrails-report-weekly --repo-root . --config tools/weekly_reporting.yml --output-dir artifacts/governance
 
 release-ready: ## Run release readiness gate (quality + package build/check)
 	@$(MAKE) check
